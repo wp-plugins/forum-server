@@ -12,6 +12,8 @@ This Wordpress plugin is a complete forum system for your wordpress blog.
 
 This Wordpress plugin is a complete forum system for your wordpress blog. 
 The forum is built in so no work is needed by you to intergrate it into your site. 
+This is a much more advanced and better than the WP-Forum plugin but the 
+original code did come from there.  
 
 == Installation ==
 
