@@ -13,7 +13,12 @@ This Wordpress plugin is a complete forum system for your wordpress blog.
 This Wordpress plugin is a complete forum system for your wordpress blog. 
 The forum is built in so no work is needed by you to intergrate it into your site. 
 This is a much more advanced and better than the WP-Forum plugin but the 
-original code did come from there.  
+original code did come from there.
+
+If there are any problems installing this plugin 
+please visit the site at http://vasthtml.com/js/wordpress-forum-server/
+and download the plugin from there.
+   
 
 == Installation ==
 
@@ -29,6 +34,10 @@ For a complete demo visit http://vasthtml.com/support/
 
 = Do you have a demo? = 
 Yes i do its located here: http://vasthtml.com/support/
+
+= The file from Wordpress.Org does not work = 
+Go to http://vasthtml.com/js/wordpress-forum-server/
+and download from there.
 
 = May I recommend some new features? = 
 Yes please do. http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=20.0
