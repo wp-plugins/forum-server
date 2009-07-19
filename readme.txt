@@ -28,7 +28,7 @@ anf leave a link to your site.
 
 This section describes how to install the plugin and get it working.
 
-1. Upload `forumserver` folder to the `/wp-content/plugins/` directory
+1. Upload `forum-server` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
 Please visit http://vasthtml.com/js/wordpress-forum-server/ for usage instructions.
