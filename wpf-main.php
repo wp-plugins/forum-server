@@ -15,7 +15,7 @@ include_once("wpf.class.php");
 $vasthtml = new vasthtml();
 
 // Activating?
-register_activation_hook(__FILE__ ,array(&$vasthtml,'fs_vasthtml_install'));
+register_activation_hook(__FILE__ ,array(&$vasthtml,'wp_forum_install'));
 
 add_action("the_content", array(&$vasthtml, "go"));
 add_action('init', array(&$vasthtml,'set_cookie'));

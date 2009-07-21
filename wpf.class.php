@@ -118,12 +118,12 @@ class vasthtml{
 	
 	// Add admin pages
 	function add_admin_pages(){
-		add_menu_page('Forum Server', 'Forum Server', 8, 'forum-server/fs-admin/fs-admin.php', '', WPFURL."images/logo.png");	
-		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Skins', 'Skins', 8,"admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=skins"); 
-		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Categories & Forums', 'Categories & Forums', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=structure");
-		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Moderators', 'Moderators', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=moderators");
-		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'User Groups', 'User Groups', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=usergroups");
-		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'About', 'About', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=about");
+		add_menu_page('Forum Server', 'Forum Server', 8, 'forumserver/fs-admin/fs-admin.php', '', WPFURL."images/logo.png");	
+		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Skins', 'Skins', 8,"admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=skins"); 
+		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Categories & Forums', 'Categories & Forums', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=structure");
+		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Moderators', 'Moderators', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=moderators");
+		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'User Groups', 'User Groups', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=usergroups");
+		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'About', 'About', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=about");
 	}
 	
 	// ... and some styling and meta
@@ -1013,7 +1013,7 @@ class vasthtml{
 
 			
 			$sql1 = "
-			CREATE TABLE IF NOT EXISTS $table_forums (
+			CREATE TABLE ". $table_forums." (
 			  id int(11) NOT NULL auto_increment,
 			  `name` varchar(255) NOT NULL default '',
 			  parent_id int(11) NOT NULL default '0',
@@ -1023,7 +1023,7 @@ class vasthtml{
 			);";
 	
 			$sql2 = "
-			CREATE TABLE IF NOT EXISTS $table_groups (
+			CREATE TABLE ". $table_groups." (
 			  id int(11) NOT NULL auto_increment,
 			  `name` varchar(255) NOT NULL default '',
 			  `description` varchar(255) default '',
@@ -1032,7 +1032,7 @@ class vasthtml{
 			);";
 	
 			$sql3 = "
-			CREATE TABLE IF NOT EXISTS $table_posts (
+			CREATE TABLE ". $table_posts." (
 			  id int(11) NOT NULL auto_increment,
 			  `text` longtext,
 			  parent_id int(11) NOT NULL default '0',
@@ -1045,7 +1045,7 @@ class vasthtml{
 	
 	
 			$sql4 = "
-			CREATE TABLE IF NOT EXISTS $table_threads (
+			CREATE TABLE ". $table_threads." (
 			  id int(11) NOT NULL auto_increment,
 			  parent_id int(11) NOT NULL default '0',
 			  views int(11) NOT NULL default '0',
@@ -1058,7 +1058,7 @@ class vasthtml{
 			
 			// 1.7.7
 			/*$sql5 = "
-			CREATE TABLE IF NOT EXISTS $table_captcha (
+			CREATE TABLE ". $table_captcha." (
 			  id int(11) NOT NULL auto_increment,
 			  `ip` varchar(20) NOT NULL default '',
 			  `code` varchar(20) NOT NULL default '',
@@ -1066,7 +1066,7 @@ class vasthtml{
 			);";*/
 			// 2.0
 			$sql6 = "
-				CREATE TABLE IF NOT EXISTS $table_usergroup2user (
+				CREATE TABLE ". $table_usergroup2user." (
 			  `id` int(11) NOT NULL auto_increment,
 			  `user_id` int(11) NOT NULL,
 			  `group` varchar(255) NOT NULL,
@@ -1074,7 +1074,7 @@ class vasthtml{
 			);";
 			
 			$sql7 = 
-				"CREATE TABLE IF NOT EXISTS $table_usergroups (
+				"CREATE TABLE ". $table_usergroups." (
 				  `id` int(11) NOT NULL auto_increment,
 				  `name` varchar(255) NOT NULL,
 				  `description` varchar(255) default NULL,
@@ -1082,7 +1082,7 @@ class vasthtml{
 				  PRIMARY KEY  (`id`)
 				);";
 			
-			require_once(ABSPATH . 'wp-admin/upgrade-functions.php');
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			
 			dbDelta($sql1);
 			dbDelta($sql2);
@@ -1092,19 +1092,29 @@ class vasthtml{
 			dbDelta($sql6);
 			dbDelta($sql7);
 	
+			$xyquery1="ALTER TABLE ".$table_groups." ADD sort int( 11 ) NOT NULL;";
+			$xyquery2="ALTER TABLE ".$table_forums." ADD sort int( 11 ) NOT NULL;";
+			$xyquery3="ALTER TABLE ".$table_threads." ADD last_post datetime NOT NULL;";
+			$xyquery4="ALTER TABLE ".$table_groups." ADD description varchar(255;)";
+			
+			$xyquery5="ALTER TABLE ".$table_groups." ADD usergroups varchar(255);";
+			$xyquery6="ALTER TABLE ".$table_threads." CHANGE forum_id parent_id int(11);";
+			$xyquery7="ALTER TABLE ".$table_posts." CHANGE thread_id parent_id int(11);";
+			$xyquery8="ALTER TABLE '".$table_posts."' ADD FULLTEXT ( `text` );";
+			
 			// 1.7.3
-			maybe_add_column($table_groups, 'sort', "ALTER TABLE $table_groups ADD sort int( 11 ) NOT NULL");
-			maybe_add_column($table_forums, 'sort', "ALTER TABLE $table_forums ADD sort int( 11 ) NOT NULL");
+			maybe_add_column($table_groups, sort, $xyquery1);
+			maybe_add_column($table_forums, sort,$xyquery2);
 			
 			// 1.7.5
-			maybe_add_column($table_threads, 'last_post', "ALTER TABLE $table_threads ADD last_post datetime NOT NULL");
+			maybe_add_column($table_threads, last_post, $xyquery3);
 			
 			// 2.0
-			maybe_add_column($table_groups, 'description', "ALTER TABLE $table_groups ADD description varchar(255)");
-			maybe_add_column($table_groups, 'usergroups', "ALTER TABLE $table_groups ADD usergroups varchar(255)");
-			maybe_add_column($table_groups, 'parent_id', "ALTER TABLE $table_threads CHANGE forum_id parent_id int(11)");
-			maybe_add_column($table_posts,  'parent_id', "ALTER TABLE $table_posts CHANGE thread_id parent_id int(11)");
-			$wpdb->query("ALTER TABLE `$table_posts` ADD FULLTEXT ( `text` )");
+			maybe_add_column($table_groups, description, $xyquery4);
+			maybe_add_column($table_groups, usergroups, $xyquery5);
+			maybe_add_column($table_groups, parent_id, $xyquery6);
+			maybe_add_column($table_posts,  parent_id, $xyquery7);
+			$wpdb->query($xyquery8);
 
 			$this->convert_moderators();
 			
