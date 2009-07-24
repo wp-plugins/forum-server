@@ -118,12 +118,12 @@ class vasthtml{
 	
 	// Add admin pages
 	function add_admin_pages(){
-		add_menu_page('Forum Server', 'Forum Server', 8, 'forumserver/fs-admin/fs-admin.php', '', WPFURL."images/logo.png");	
-		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Skins', 'Skins', 8,"admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=skins"); 
-		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Categories & Forums', 'Categories & Forums', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=structure");
-		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'Moderators', 'Moderators', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=moderators");
-		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'User Groups', 'User Groups', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=usergroups");
-		add_submenu_page('forumserver/fs-admin/fs-admin.php', 'About', 'About', 8, "admin.php?page=forumserver/fs-admin/fs-admin.php&amp;vasthtml_action=about");
+		add_menu_page('Forum Server', 'Forum Server', 8, 'forum-server/fs-admin/fs-admin.php', '', WPFURL."images/logo.png");	
+		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Skins', 'Skins', 8,"admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=skins"); 
+		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Categories & Forums', 'Categories & Forums', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=structure");
+		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Moderators', 'Moderators', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=moderators");
+		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'User Groups', 'User Groups', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=usergroups");
+		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'About', 'About', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=about");
 	}
 	
 	// ... and some styling and meta
