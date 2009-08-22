@@ -27,6 +27,7 @@ class vasthtml{
 	var $logout_link 	= "";
 	var $home_url 		= "";
 	var $forum_link		= "";
+	var $group_link		= "";
 	var $thread_link	= "";
 
 	var $profil_link 	= "";
@@ -218,7 +219,7 @@ class vasthtml{
 		}
 
 		</script>
-	<?php } 
+	<?php  } 
 	
 	function setup_links(){
 	global $wp_rewrite;
@@ -229,6 +230,28 @@ class vasthtml{
 		$perm = get_permalink($this->page_id);
 		
 		$this->forum_link 		= $perm.$delim."vasthtmlaction=viewforum&amp;f=";
+		$this->group_link 		= $perm.$delim."vasthtmlaction=vforum&amp;g=";
+		$this->thread_link 		= $perm.$delim."vasthtmlaction=viewtopic&amp;t=";
+		$this->add_topic_link 	= $perm.$delim."vasthtmlaction=addtopic&amp;forum=$this->current_forum";
+		$this->post_reply_link 	= $perm.$delim."vasthtmlaction=postreply&amp;thread=$this->current_thread";
+		$this->base_url			= $perm.$delim."vasthtmlaction=";
+		$this->reg_link 		= $this->path."/wp-register.php?redirect_to=";
+		$this->topic_feed_url	= WPFURL."feed.php?topic=";
+		$this->global_feed_url	= WPFURL."feed.php?topic=all";
+		$this->home_url 		= $perm;
+		$this->logout_link 		= $this->path."/wp-login.php?action=logout";
+
+	}
+	function setup_linksdk($perm){
+	global $wp_rewrite;
+		if($wp_rewrite->using_permalinks())
+			$delim = "?";
+		else
+			$delim = "&amp;";
+		
+		
+		$this->forum_link 		= $perm.$delim."vasthtmlaction=viewforum&amp;f=";
+		$this->group_link 		= $perm.$delim."vasthtmlaction=vforum&amp;g=";
 		$this->thread_link 		= $perm.$delim."vasthtmlaction=viewtopic&amp;t=";
 		$this->add_topic_link 	= $perm.$delim."vasthtmlaction=addtopic&amp;forum=$this->current_forum";
 		$this->post_reply_link 	= $perm.$delim."vasthtmlaction=postreply&amp;thread=$this->current_thread";
@@ -248,6 +271,9 @@ class vasthtml{
 	}
 	function get_forumlink($id){
 		return $this->forum_link.$id.".$this->curr_page";
+	}
+	function get_grouplink($id){
+		return $this->group_link.$id.".$this->curr_page";
 	}
 	function get_threadlink($id){
 		return $this->thread_link.$id.".$this->curr_page";
@@ -390,7 +416,8 @@ class vasthtml{
 				case 'profile' : $this->view_profile(); break;
 				case 'search' : $this->search_results(); break;
 				case 'editprofile' : include(WPFPATH.'wpf-edit-profile.php');break;
-
+				case 'vforum' : $this->vforum($this->check_parms($_GET['g']));break;
+				
 			}
 		}
 		else{
@@ -406,6 +433,7 @@ class vasthtml{
 			".__("Version:", "vasthtml").$this->get_version()."<br />
 			<small>$load</small>
 		</div>";
+		
 		return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
 
 	}
@@ -710,7 +738,7 @@ class vasthtml{
 			
 
 				$this->o .= "<div class='wpf'><table width='100%' class='wpf-table'>";
-				$this->o .= "<tr><th colspan='4'>".$this->output_filter($g->name)."</th></tr>";
+				$this->o .= "<tr><th colspan='4'><a href='".$this->get_grouplink($g->id)."'>".$this->output_filter($g->name)."</a></th></tr>";
 				$frs = $this->get_forums($g->id);
 				//if($frs)
 					//$this->o .= "<tr>";
@@ -759,7 +787,70 @@ class vasthtml{
 		$this->footer();
 
 	}
-	
+	function vforum($groupid){
+		global $user_ID;
+
+//<a name='$g->id' href='http://mac/smf/index.php?action=collapse;c=1;sa=collapse;#1'>General Category</a>"
+				
+				
+		$grs = $this->get_groups($groupid);
+		$this->current_group = $groupid;
+		$this->header();
+		
+		foreach($grs as $g){
+			if($this->have_access($g->id)){
+			
+
+				$this->o .= "<div class='wpf'><table width='100%' class='wpf-table'>";
+				$this->o .= "<tr><th colspan='4'><a href='".$this->get_grouplink($g->id)."'>".$this->output_filter($g->name)."</a></th></tr>";
+				$frs = $this->get_forums($g->id);
+				//if($frs)
+					//$this->o .= "<tr>";
+				foreach($frs as $f){
+					$alt = ($alt == "alt")?"":"alt";
+					$this->o .= "<tr class='$alt'>";
+					$image = "off.gif";
+					if($user_ID){
+					$lpif = $this->last_poster_in_forum($f->id, true);
+						$last_posterid = $this->last_posterid($f->id);
+						if($last_posterid != $user_ID){
+							$lp = strtotime($lpif); // date
+							$lv = $this->last_visit();
+						
+						if($lv < $lp)
+							$image = "on.gif";
+						else
+							$image = "off.gif";
+						}
+					}
+					$this->o .= "
+							<td class='wpf-alt' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
+							<td valign='top'><strong><a href='".$this->get_forumlink($f->id)."'>"
+								.$this->output_filter($f->name)."</a></strong><br />"
+								.$this->output_filter($f->description);
+								if($f->description != "")$this->o .= "<br />";
+								$this->o .= $this->get_forum_moderators($f->id)
+							."</td>";
+					
+					$this->o .= "<td nowrap='nowrap' width='11%' align='left' class='wpf-alt'><small>".__("Topics: ", "vasthtml")."".$this->num_threads($f->id)."<br />".__("Posts: ", "vasthtml").$this->num_posts_forum($f->id)."</small></td>";
+					
+					$this->o .= "<td  width='28%' ><small>".$this->last_poster_in_forum($f->id)."</small></td>";
+					$this->o .= "</tr>";
+				}
+			$this->o .= "</table>
+				
+			</div><br class='clear'/>";
+			}
+			
+		}
+		$this->o .= "<table>
+					<tr>
+						<td><small><img alt='' align='top' src='$this->skin_url/images/new_some.gif' /> ".__("New posts", "vasthtml")." <img alt='' align='top' src='$this->skin_url/images/new_none.gif' /> ".__("No new posts", "vasthtml")."</small></td>
+					</tr>
+				</table><br class='clear'/>";
+		$this->footer();
+
+	}
 	// TODO
 	function output_filter($string){
 	
@@ -872,6 +963,7 @@ class vasthtml{
 	function setup_header(){
 		$this->setup_links();
 		global $user_ID;
+		
 		?>
 		<link rel='alternate' type='application/rss+xml' title="<?php echo __("Forums RSS", "vasthtml"); ?>" href="<?php echo $this->global_feed_url;?>" />
 		<link rel='stylesheet' type='text/css' href="<?php echo "$this->skin_url/style.css";?>"  />
@@ -892,8 +984,7 @@ class vasthtml{
 
 
 		
-	<?php }
-	
+	<?php  }
 	// Some SEO friendly stuff
 	function get_pagetitle($bef_title){
 	global $wpdb;
@@ -1320,10 +1411,10 @@ function forum_get_group_from_post($thread_id){
 	global $wpdb;
 		$this->setup_links();
 		
-		$trail = "<a href='".get_bloginfo('url')."'>".get_bloginfo('name')."</a>";
+		$trail = "<a href='".get_permalink($this->page_id)."'>Forum</a>";
 
 		if($this->current_group)
-			$trail .= " <strong>&raquo;</strong> <a href='".get_permalink($this->page_id)."'>".$this->get_groupname($this->current_group)."</a>";
+			$trail .= " <strong>&raquo;</strong> <a href='$this->base_url"."vforum&amp;g=$this->current_group.0'>".$this->get_groupname($this->current_group)."</a>";
 
 		if($this->current_forum)
 			$trail .= " <strong>&raquo;</strong> <a href='$this->base_url"."viewforum&amp;f=$this->current_forum.0'>".$this->get_forumname($this->current_forum)."</a>";

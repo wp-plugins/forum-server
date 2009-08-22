@@ -11,7 +11,7 @@ if (file_exists($root.'/wp-load.php')) {
 	// before WP 2.6
 	require_once($root.'/wp-config.php');
 	}
-	$vasthtml->setup_links();
+	$vasthtml->setup_linksdk($_POST['add_topic_plink']);
 	$options = get_option("vasthtml_options");
 	
 	if($options['forum_captcha'] == true && !$user_ID){
