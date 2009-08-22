@@ -63,6 +63,10 @@ Yes I can. http://vasthtml.com/support/ and let e know what you need.
 
 == Changelog ==
 
+= 1.2 =
+* Link to FORUM in Breadcrumb
+* Group Link and Group Page
+* Fixed the blank page redirection stuff
 = 1.1 =
 * Fixed database errors
 = 1.0 =
