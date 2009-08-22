@@ -29,6 +29,7 @@
 				<td></td>
 				<td><input type='submit' name='add_topic_submit' value='".__("Submit", "vasthtml")."' /></td>
 				<input type='hidden' name='add_topic_forumid' value='".$this->check_parms($_GET['forum'])."'/>
+				<input type='hidden' name='add_topic_plink' value='".get_permalink($this->page_id)."'/>
 			</tr>
 
 			</table></form>";
