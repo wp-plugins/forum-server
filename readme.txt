@@ -4,7 +4,7 @@ Donate link: http://vasthtml.com/
 Tags: forum, intergrated
 Requires at least: 2.6
 Tested up to: 2.8.1
-Stable tag: 1.1
+Stable tag: 1.2
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 

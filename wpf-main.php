@@ -4,7 +4,7 @@
 	Plugin Author: Eric Hamby
 	Plugin URI: http://vasthtml.com
 	Author URI: http://erichamby.com
-	Version: 1.1
+	Version: 1.2
 */
 
 //$plugin_dir = basename(dirname(__FILE__)); 
