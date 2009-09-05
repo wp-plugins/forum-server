@@ -3,8 +3,8 @@ Contributors: EricHamby
 Donate link: http://vasthtml.com/
 Tags: forum, intergrated
 Requires at least: 2.6
-Tested up to: 2.8.1
-Stable tag: 1.2
+Tested up to: 2.8.4
+Stable tag: 1.3
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -63,6 +63,9 @@ Yes I can. http://vasthtml.com/support/ and let e know what you need.
 
 == Changelog ==
 
+= 1.3 =
+* The link to edit categories now works.
+* Made a work around for those having trouble deleting categories.
 = 1.2 =
 * Link to FORUM in Breadcrumb
 * Group Link and Group Page
