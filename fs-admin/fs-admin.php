@@ -521,6 +521,7 @@ $image = WPFURL."images/user.png";
 			$groups = $_POST['delete_groups'];
 			$forums = $_POST['delete_forums'];
 			
+
 			$forum_num = count($forums);
 			$group_num = count($groups);
 
@@ -676,7 +677,7 @@ function structure(){
 		echo "<table class='widefat'>";
 		echo "<thead><tr>
 					<th class='check-column'><input type='checkbox' value='$group->id' name='delete_groups[]' /></th>
-					<th>".stripslashes($group->name)." ".__("Modify", "vasthtml")."</a></th>
+					<th>".stripslashes($group->name)." <a href='$edit_link'>".__("Modify", "vasthtml")."</a></th>
 					<th nowrap><a href='$up_link'>&#x2191;</a> | <a href='$down_link'>&#x2193;</a></th>
 					<th></th>
 					<th></th>
