@@ -1,7 +1,8 @@
-=== Plugin Name ===
-Contributors: VastHTML
-Donate link: http://vasthtml.com/
-Tags: forum, intergrated
+===WP Forum Server ===
+Author: VastHTML
+Author URI: http://lucidcrew.com/
+Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
+Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 2.9.2
 Stable tag: 1.3

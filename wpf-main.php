@@ -1,9 +1,9 @@
 <?php
 /*
-	Plugin Name: Forum Server
+	Plugin Name: WP Forum Server
 	Plugin Author: VastHTML
-	Plugin URI: http://vasthtml.com
-	Author URI: http://lucidcrew.com
+	Author URI: http://lucidcrew.com/
+    Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 	Version: 1.3
 */
 
