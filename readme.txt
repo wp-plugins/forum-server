@@ -1,9 +1,9 @@
 === Plugin Name ===
-Contributors: EricHamby
+Contributors: VastHTML
 Donate link: http://vasthtml.com/
 Tags: forum, intergrated
 Requires at least: 2.6
-Tested up to: 2.8.4
+Tested up to: 2.9.2
 Stable tag: 1.3
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
@@ -30,8 +30,11 @@ This section describes how to install the plugin and get it working.
  
 1. Upload `forum-server` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Make a new page to place your forum into. Make sure you have it on the “HTML” editor.
+Place <!--VASTHTML--> inside the new page.
 
 Please visit http://vasthtml.com/js/wordpress-forum-server/ for usage instructions.
+Complete Installation Instructions: http://vasthtml.com/item-readme/forum-server/
 For a complete demo visit http://vasthtml.com/support/
 
 == Frequently Asked Questions ==

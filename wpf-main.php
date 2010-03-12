@@ -1,9 +1,9 @@
 <?php
 /*
 	Plugin Name: Forum Server
-	Plugin Author: Eric Hamby
+	Plugin Author: VastHTML
 	Plugin URI: http://vasthtml.com
-	Author URI: http://erichamby.com
+	Author URI: http://lucidcrew.com
 	Version: 1.3
 */
 
