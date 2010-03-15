@@ -145,7 +145,7 @@ switch($cur_tab){
 				include("wpf-usergroup-edit.php");
 			}
 $image = WPFURL."images/user.png";
-					echo "<h2>".__("<img src='$image'> Manage User Groups", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."usergroups&do=addusergroup'> ".__("add new", "vasthtml")."</a></h2> ";
+					echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage User Groups", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."usergroups&do=addusergroup'> ".__("add new", "vasthtml")."</a></h2> ";
 			$usergroups = $vasthtml->get_usergroups();
 /*****************************************/
 			if($usergroups){
@@ -246,7 +246,7 @@ $image = WPFURL."images/user.png";
 			if (is_dir(SKINDIR)) {
 			   if ($dh = opendir(SKINDIR)) {
 				$image = WPFURL."images/logomain.png";
-				echo "<div class='wrap'><h2>".__("<img src='$image'> Skin options", "vasthtml")."</h2><br class='clear' /><table class='widefat'>
+				echo "<div class='wrap'><h2>".__("<img src='$image'>WP Forum Server &raquo; Skin options", "vasthtml")."</h2><br class='clear' /><table class='widefat'>
 						<thead>
 							<tr>
 								<th>".__("Screenshot", "vasthtml")."</th>
@@ -271,7 +271,7 @@ $image = WPFURL."images/user.png";
 									if($op['forum_skin'] == $file)
 										echo "<td>In Use</td></tr>";
 									else
-										echo "<td><a href='".ADMIN_BASE_URL."skins&action=activateskin&skin=$file'>Activate</a></td></tr>";
+										echo "<td><a href='admin.php?page=forum-server/fs-admin/fs-admin.php&vasthtml_action=skins&action=activateskin&skin=$file'>Activate</a></td></tr>";
 						}
 					}
 				}
@@ -298,23 +298,21 @@ $image = WPFURL."images/user.png";
 		}
 		function about(){
 			$image = WPFURL."images/logomain.png";
-			$image2 = WPFURL."images/Clipboard.png";
 			echo " <div class='wrap'>
-				<h2><img src='$image'> About WP Forum</h2>
+				<h2><img src='$image'>About WP Forum Server</h2>
                <table class='widefat'> <thead>
 							<tr>
 				<th>Current Version: <strong>".$this->get_version()."</strong></th>
 
 							</tr>
-						</thead><tr class='alternate'><td>
-						<img align='left' src='$image2'> 
-				<p>Discussion forum plugin for WordPress. With support for different skins, 3 included by default, changeable from the WP admin interface. Admin can choose if unregistered posting is allowed and Captcha (optional) is used for spam control. Tight interaction with Wordpress makes an easy to use and administer plugin. Support for different user groups allowing or disallowing members to view forums in a groups.</p>
+						</thead><tr class='alternate'><td style='padding: 20px'>
+				<p><strong>WP Forum Server is the best integrated discussion forum plugin for WordPress</strong>. Tight interaction with Wordpress makes an easy to use and administer plugin. Support for different user groups allowing or disallowing members to view forums in a groups. It includes support for different skins, 3 included by default, that are changeable from the WP admin interface. The site admin can choose if unregistered posting is allowed and Captcha (optional) is used for spam control.</p>
 				<ul>
-<li><h3>Author: Eric Hamby</h3></li>
-<strong>Plugin Page:</strong> <a class='button' href='http://vasthtml.com/'>VastHTML.Com</a><br /><br />
-<strong>Support Forum:</strong>  <a class='button' href='http://vasthtml.com/support/'>VastHTML.Com/Support</a><br /><br />
-<strong>Contact:</strong>  <a class='button' href='http://vasthtml.com/contact/'>VastHTML.Com/Contact</a><br /><br />
-<strong>Forum Theme:</strong>  <a class='button' href='http://vasthtml.com/js/category/wp-forums-themes/'>VastHTML.Com (Themes)</a>
+<li><h3>Author: <a href='http://vasthtml.com/'>VastHTML</a></h3></li>
+<strong>Plugin Page:</strong> <a class='button' href='http://vasthtml.com/'>www.vasthtml.com</a><br /><br />
+<strong>Support Forum:</strong>  <a class='button' href='http://vasthtml.com/support/'>www.vasthtml.com/support</a><br /><br />
+<strong>Contact:</strong>  <a class='button' href='http://vasthtml.com/contact/'>www.vasthtml.com/contact</a><br /><br />
+<strong>WP Forum Themes:</strong>  <a class='button' href='http://vasthtml.com/js/category/wp-forums-themes/'>www.vasthtml.com/js/category/wp-forums-themes/</a>
 				</ul>
                 </td></tr>
        </table>
@@ -364,7 +362,7 @@ $image = WPFURL."images/user.png";
 			$op = get_option('vasthtml_options');
 			$image = WPFURL."images/chart.png";
 			echo '<div class="wrap"> 
-			<h2>'.__("<img src='$image'> Forum statistics", "vasthtml").'</h2><br class="clear" />
+			<h2>'.__("<img src='$image'>WP Forum Server", "vasthtml").'</h2><br class="clear" />
 			<table class="widefat">
 				<thead>
 					<tr>
@@ -398,7 +396,7 @@ $image = WPFURL."images/user.png";
 					</tr>
 			</table>';
 			$image = WPFURL."images/logomain.png";
-			echo '<h2>'.__("<img src='$image'> General Options", "vasthtml").'</h2>';
+			echo '<h2>'.__("<img src='$image'>WP Forum Server &raquo;  General Options", "vasthtml").'</h2>';
 			echo '<form id="vasthtml_option_form" name="vasthtml_option_form" method="post" action="">';
 			
 			if (function_exists('wp_nonce_field'))
@@ -655,7 +653,7 @@ function structure(){
 	$image = WPFURL."images/table.png";
 	$this->edit_forum_group();
 	echo "<div class='wrap'>";
-		echo "<h2>".__("<img src='$image'> Manage categories and forums ", "vasthtml")."</h2>";
+		echo "<h2>".__("<img src='$image'>WP Forum Server &raquo; Categories and Forums ", "vasthtml")."</h2>";
 		
 		
 	
@@ -864,7 +862,7 @@ function structure(){
 			}
 			$mods = $vasthtml->get_moderators();
              $image = WPFURL."images/user.png"; 
-			echo "<h2>".__("<img src='$image'> Manage Moderators", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."moderators&do=add_moderator'>(".__("add new", "vasthtml").")</a></h2>";
+			echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage Moderators", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."moderators&do=add_moderator'>(".__("add new", "vasthtml").")</a></h2>";
 
 			if($mods){
 

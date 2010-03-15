@@ -1,11 +1,12 @@
 ===WP Forum Server ===
 Author: VastHTML
 Author URI: http://lucidcrew.com/
+Donate link: http://vasthtml.com/
 Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 2.9.2
-Stable tag: 1.3
+Stable tag: 1.4
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -22,7 +23,7 @@ and download the plugin from there.
 
 If you want to show off your forum please 
 visit: http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
-anf leave a link to your site.
+and leave a link to your site.
    
 
 == Installation ==
@@ -32,7 +33,7 @@ This section describes how to install the plugin and get it working.
 1. Upload `forum-server` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Make a new page to place your forum into. Make sure you have it on the `HTML` editor.
-Place `<!--VASTHTML-->` inside the new page.
+4. Simply place the tag `<!--VASTHTML-->` in the new page content area.
 
 Please visit http://vasthtml.com/js/wordpress-forum-server/ for usage instructions.
 Complete Installation Instructions: http://vasthtml.com/item-readme/forum-server/
@@ -41,9 +42,9 @@ For a complete demo visit http://vasthtml.com/support/
 == Frequently Asked Questions ==
 
 = Do you have a demo? = 
-Yes i do its located here: http://vasthtml.com/support/
+Yes- it's located here: http://vasthtml.com/support/
 
-= The file from Wordpress.Org does not work = 
+= The file from Wordpress.org does not work = 
 Go to http://vasthtml.com/js/wordpress-forum-server/
 and download from there.
 
@@ -54,10 +55,8 @@ http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
 Yes please do. http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=20.0
 
 = Where can I get support? = 
-At the support forums on Vast HTML: http://vasthtml.com/support/
+In the support forums on Vast HTML: http://vasthtml.com/support/
 
-= I need some help modifying this. Can you help? = 
-Yes I can. http://vasthtml.com/support/ and let e know what you need. 
 
 == Screenshots ==
 
@@ -66,7 +65,12 @@ Yes I can. http://vasthtml.com/support/ and let e know what you need.
 3. About the forum page.
 
 == Changelog ==
-
+= 1.4 =
+* Added admin ability to close a topic
+* Added admin ability to move a topic
+* Fixed bug with message width on narrow theme column
+* Fixed bug with Google Analytics hiding message textarea
+* Fixed bug when user manually changes url parameters
 = 1.3 =
 * The link to edit categories now works.
 * Made a work around for those having trouble deleting categories.
@@ -80,3 +84,8 @@ Yes I can. http://vasthtml.com/support/ and let e know what you need.
 * Code clean up
 * Changed menu style to match Wordpress 2.7+
 * Changed all images to a more updated look 
+
+== Upgrade Notice ==
+= 1.4 =
+This version fixes a security related bug.  Upgrade immediately.
+

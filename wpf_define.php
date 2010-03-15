@@ -10,7 +10,9 @@ define('WPFURL', WP_CONTENT_URL . '/plugins/' . WPFDIR . '/');
 define('SKINDIR', WP_CONTENT_DIR . '/plugins/' . WPFDIR . '/skins/');
 define('SKINURL', WP_CONTENT_URL . '/plugins/' . WPFDIR . '/skins/');
 define('NO_SKIN_SCREENSHOT_URL', WP_CONTENT_URL . '/plugins/' . WPFDIR . '/skins/default.png');
-define("ADMIN_BASE_URL", "{$_SERVER['PHP_SELF']}?page=".WPFPLUGIN."/fs-admin//fs-admin.php&amp;vasthtml_action=");
+//define("ADMIN_BASE_URL", "{$_SERVER['PHP_SELF']}?page=".WPFPLUGIN."/fs-admin//fs-admin.php&amp;vasthtml_action=");
+define("ADMIN_BASE_URL", "admin.php?page=".WPFPLUGIN."/fs-admin/fs-admin.php&amp;vasthtml_action=");
+
 define("ADMIN_PROFILE_URL", get_bloginfo("url")."/wp-admin/user-edit.php?user_id=");
 define("PROFILE_URL", get_bloginfo("url")."/wp-admin/profile.php");
 

@@ -2,6 +2,7 @@
 include("wpf_define.php");
 require_once( 'bbcode.php' );
 //require_once( 'BBCodeParser/BBCodeParser.php' );
+@ob_start();
 
 if(!class_exists('vasthtml')){
 class vasthtml{
@@ -96,8 +97,8 @@ class vasthtml{
 								'forum_allow_post_in_solved' 	=> true,
 								'set_sort' 						=> "DESC",
 								'forum_use_spam' 				=> false,
-								'forum_use_bbcode' 				=> false,
-								'forum_captcha' 				=> false,
+								'forum_use_bbcode' 				=> true,
+								'forum_captcha' 				=> true,
 								'hot_topic'						=> 15,
 								'veryhot_topic'					=> 25
 								); 
@@ -166,10 +167,10 @@ class vasthtml{
 	function latest_activity($num = 5, $ul = true){
 		global $wpdb;
 		$posts = $wpdb->get_results("SELECT * FROM $this->t_posts ORDER BY `date` DESC LIMIT $num");
-		if($ul) echo "<ul>";
+		if($ul) echo "<ul class='forumtwo'>";
 		foreach($posts as $post){
 			$user = get_userdata($post->author_id);
-			echo "<li><a href='".$this->thread_link."$post->parent_id.0'>".$this->output_filter($post->subject)."</a> ".__("by:", "vasthtml")." ".$this->profile_link($post->author_id)."<br /><small>".$this->format_date($post->date)."</small></li>";
+			echo "<li class='forum'><a href='".$this->thread_link."$post->parent_id.0'>".$this->output_filter($post->subject)."</a><br /> ".__("", "vasthtml")." ".$this->profile_link($post->author_id)." <small>".$this->format_date($post->date)."</small></li>";
 		}
 		if($ul)echo "</ul>";
 	}
@@ -313,13 +314,13 @@ class vasthtml{
 			return $wpdb->get_results("SELECT * FROM $this->t_threads ORDER BY `date` ".SORT_ORDER);
 	}
 	
-	//select fs_vasthtml_threads.subject, fs_vasthtml_posts.date from fs_vasthtml_threads inner join fs_vasthtml_posts on fs_vasthtml_posts.parent_id = fs_vasthtml_threads.id where fs_vasthtml_threads.id = $id order by fs_vasthtml_posts.date DESC
-	
 	function get_sticky_threads($id){
 		global $wpdb;
 
-		$threads = $wpdb->get_results("SELECT * FROM $this->t_threads WHERE parent_id = $id AND status='sticky' ORDER BY last_post ".SORT_ORDER);
-		return $threads;
+		if($id){
+			$threads = $wpdb->get_results("SELECT * FROM $this->t_threads WHERE parent_id = $id AND status='sticky' ORDER BY last_post ".SORT_ORDER);
+			return $threads;
+		}
 	}
 
 	function get_posts($thread_id){
@@ -333,8 +334,10 @@ class vasthtml{
 		if($thread_id){
 			$posts = $wpdb->get_results("SELECT * FROM $this->t_posts WHERE parent_id = $thread_id ORDER BY `date` ASC LIMIT $limit");
 			return $posts;
+		}else{
+			//return $wpdb->get_results("SELECT * FROM $this->t_posts ORDER BY `date` ".SORT_ORDER);
+			return false;
 		}
-		return $wpdb->get_results("SELECT * FROM $this->t_posts ORDER BY `date` ".SORT_ORDER);
 	}
 
 	function get_groupname($id){
@@ -376,8 +379,10 @@ class vasthtml{
 	function check_parms($parm){
 		//if (!preg_match("/^[0-9]{1,20}$/", $parm)) 
 		$regexp = "/^([+-]?((([0-9]+(\.)?)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?))$/";
-		if (!preg_match($regexp, $parm)) 
+		if (!preg_match($regexp, $parm)){
+			@ob_end_clean();
 			wp_die("Bad request, please re-enter.");
+		}
 			
 		$p = explode(".", $parm);
 		
@@ -410,7 +415,14 @@ class vasthtml{
 						$this->current_view = THREAD;
 						$this->showthread($this->check_parms($_GET['t']));break;
 				case 'addtopic': include(WPFPATH.'wpf-thread.php');break;
-				case 'postreply': include(WPFPATH.'wpf-post.php');break;
+				case 'postreply':
+					if($this->is_closed($_GET['thread'])){
+						@ob_end_clean();
+						wp_die(__("Cheating, are we?", "vasthtml"));
+					}else{
+						include(WPFPATH.'wpf-post.php');
+					}
+					break;
 				case 'shownew' : $this->show_new(); break;
 				case 'editpost' : include(WPFPATH.'wpf-post.php');break;
 				case 'profile' : $this->view_profile(); break;
@@ -428,10 +440,10 @@ class vasthtml{
 		$end_time = microtime(true);
 		$load =  __("Page loaded in:", "vasthtml")." ".round($end_time-$start_time, 3)." ".__("seconds.", "vasthtml")."";
 
-		$this->o .= "<div id='wpf-info'>
-			".__("Forum Server by:", "vasthtml")."<a href='http://www.vasthtml.com'> Vast HTML</a>, 
-			".__("Version:", "vasthtml").$this->get_version()."<br />
-			<small>$load</small>
+		$this->o .= "<div id='wpf-info'><small>
+			".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin website design'>LucidCrew</a> <br /> 
+			".__("Version:", "vasthtml").$this->get_version()."; 
+			$load</small>
 		</div>";
 		
 		return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
@@ -474,116 +486,126 @@ class vasthtml{
 		if(isset($_GET['delete_topic']))
 			$this->remove_topic();
 
-		$threads = $this->get_threads($forum_id);
-		$sticky_threads = $this->get_sticky_threads($forum_id);
-		
+		if(isset($_GET['move_topic']))
+			$this->move_topic();
 
+		if(!empty($forum_id)){
 
-		$t = $sticky_threads + $threads;
-		
-		$this->current_group = $this->get_parent_id(FORUM, $forum_id);
-		$this->current_forum = $forum_id;
+			$threads = $this->get_threads($forum_id);
+			$sticky_threads = $this->get_sticky_threads($forum_id);
+
+			$t = $sticky_threads + $threads;
+			
+			$this->current_group = $this->get_parent_id(FORUM, $forum_id);
+			$this->current_forum = $forum_id;
+					
+
+			$this->header();
+			
+			if(isset($_GET['getNewForumID'])){
+				$out .= $this->getNewForumID();
+			}else{
+				if(!$this->have_access($this->current_group)){
+					@ob_end_clean();
+					wp_die(__("Sorry, but you don't have access to this forum", "vasthtml"));
+				}
 				
+				$out .= "<table cellpadding='0' cellspacing='0'>
+							<tr>
+								<td width='100%'>".$this->thread_pageing($forum_id)."</td>
+								<td>".$this->forum_menu($this->current_group)."</td>
+							</tr>
+						</table>";
+				$out .= "<div class='wpf'><table class='wpf-table' id='topicTable'>
+								<tr>
+									<th width='6%' class='forumIcon'></th>
+									<th>".__("Topic", "vasthtml")."</th>
+									<th width='11%' nowrap='nowrap'>".__("Started by", "vasthtml")."</th>
+									<th width='4%'>".__("Replies", "vasthtml")."</th>
+									<th width='4%'>".__("Views", "vasthtml")."</th>
+									<th width='22%'>".__("Last post", "vasthtml")."</th>
+								</tr>";
+		/***************************************************************************************/
+			if($sticky_threads){
+				$out .= "<tr><th class='wpf-bright' colspan='6'>".__("Sticky Topics", "vasthtml")."</th></tr>";
+				foreach($sticky_threads as $thread){
+					
+					if($this->is_moderator($user_ID, $this->current_forum)){
+						$strCommands	= "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
+						$del			= "<small>($strCommands)</small>";
+					}
 
-		$this->header();
-		
-		if(!$this->have_access($this->current_group))
-			wp_die(__("Sorry, but you don't have access to this forum", "vasthtml"));
-		
-		$out .= "<table cellpadding='0' cellspacing='0'>
-					<tr>
-						<td width='100%'>".$this->thread_pageing($forum_id)."</td>
-						<td>".$this->forum_menu($this->current_group)."</td>
-					</tr>
-				</table>";
-		$out .= "<div class='wpf'><table class='wpf-table' >
-						<tr>
-							<th width='6%'></th>
-							<th>".__("Topic Title", "vasthtml")."</th>
-							<th width='11%' nowrap='nowrap'>".__("Started by", "vasthtml")."</th>
-							<th width='4%'>".__("Replies", "vasthtml")."</th>
-							<th width='4%'>".__("Views", "vasthtml")."</th>
-							<th width='22%'>".__("Last post", "vasthtml")."</th>
-						</tr>";
-/***************************************************************************************/
-	if($sticky_threads){
-		$out .= "<tr><th class='wpf-bright' colspan='6'>".__("Sticky Topics", "vasthtml")."</th></tr>";
-		foreach($sticky_threads as $thread){
-			
-			if($this->is_moderator($user_ID, $this->current_forum)){
-				$remove = "<a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
-				$del = "<small>($remove)</small>";
-			}
-
-			if($user_ID){
-				$image = "";
-				$poster_id = $this->last_posterid_thread($thread->id); // date and author_id
-				if($user_ID != $poster_id){
-					$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
-					$lv = $this->last_visit();
-					if($lp > $lv)
-						$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
+					if($user_ID){
+						$image = "";
+						$poster_id = $this->last_posterid_thread($thread->id); // date and author_id
+						if($user_ID != $poster_id){
+							$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
+							$lv = $this->last_visit();
+							if($lp > $lv)
+								$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
+						}
+					}
+					
+					
+					$sticky_img = "<img alt='' src='$this->skin_url/images/topic/normal_post_sticky.gif'/>";
+					$out .= "<tr>
+									<td class='forumIcon' align='center'>$sticky_img</td>
+									<td class='wpf-alt sticky'><span class='topicTitle'><a href='"
+										.$this->get_threadlink($thread->id)."'>"
+										.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
+									</td>
+									<td>".$this->profile_link($thread->starter)."</td>
+									<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
+									<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
+									<td><small>".$this->get_lastpost($thread->id)."</small></td>
+								</tr>";
+					}
+		/********************************************************************************************************/						
+								
+				$out .= "<tr><th class='wpf-bright forumTopics' colspan='6'>".__("Forum Topics", "vasthtml")."</th></tr>";
 				}
-			}
-			
-			
-			$sticky_img = "<img alt='' src='$this->skin_url/images/topic/normal_post_sticky.gif'/>";
-			$out .= "<tr>
-							<td align='center'>$sticky_img</td>
-							<td class='wpf-alt sticky' align='right'><span style='float:left'><a href='"
-								.$this->get_threadlink($thread->id)."'>"
-								.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
-							</td>
-							<td>".$this->profile_link($thread->starter)."</td>
-							<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
-							<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
-							<td><small>".$this->get_lastpost($thread->id)."</small></td>
-						</tr>";
-			}
-/********************************************************************************************************/						
-						
-		$out .= "<tr><th class='wpf-bright' colspan='6'>".__("Forum Topics", "vasthtml")."</th></tr>";
-		}
-		foreach($threads as $thread){
-			$alt=($alt=="alt")?"":"alt";
-			if($user_ID){
-			$image = "";
-				$poster_id = $this->last_posterid_thread($thread->id); // date and author_id
-				if($user_ID != $poster_id){
-					$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
-					$lv = $this->last_visit();
-					if($lp > $lv)
-						$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
-				}
-			}
+				foreach($threads as $thread){
+					$alt=($alt=="alt even")?"odd":"alt even";
+					if($user_ID){
+					$image = "";
+						$poster_id = $this->last_posterid_thread($thread->id); // date and author_id
+						if($user_ID != $poster_id){
+							$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
+							$lv = $this->last_visit();
+							if($lp > $lv)
+								$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
+						}
+					}
 
-			if($this->is_moderator($user_ID, $this->current_forum)){
-				$remove = "<a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
-				$del = "<small>($remove)</small>";
-			}
-			$out .= "<tr class='$alt'>
-							<td align='center'>".$this->get_topic_image($thread->id)."</td>
-							<td class='wpf-alt' align='right'><span style='float:left;'><a href='"
-								.$this->get_threadlink($thread->id)."'>"
-								.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
-							</td>
-							<td>".$this->profile_link($thread->starter)."</td>
-							<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
-							<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
-							<td><small>".$this->get_lastpost($thread->id)."</small></td>
-						</tr>";
-			}
-			$out .= "</table></div>";
-		$out .= "<table cellpadding='0' cellspacing='0'>
-					<tr>
-						<td width='100%'>".$this->thread_pageing($forum_id)."</td>
-						<td>".$this->forum_menu($this->current_group, "bottom")."</td>
-					</tr>
-				</table>";
+					if($this->is_moderator($user_ID, $this->current_forum)){
+						$strCommands	= "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
+						$del			= "<small class='adminActions'>$strCommands</small>";
+					}
+					$out .= "<tr class='$alt'>
+									<td class='forumIcon' align='center'>".$this->get_topic_image($thread->id)."</td>
+									<td class='wpf-alt'><span class='topicTitle'><a href='"
+										.$this->get_threadlink($thread->id)."'>"
+										.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
+									</td>
+									
+									<td>".$this->profile_link($thread->starter)."</td>
+									<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
+									<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
+									<td><small>".$this->get_lastpost($thread->id)."</small></td>
+								</tr>";
+					}
+					$out .= "</table></div>";
+				$out .= "<table cellpadding='0' cellspacing='0'>
+							<tr>
+								<td width='100%'>".$this->thread_pageing($forum_id)."</td>
+								<td>".$this->forum_menu($this->current_group, "bottom")."</td>
+							</tr>
+						</table>";
 
+			}
 			$this->o .= $out;
 			$this->footer();
-			
+		}
 	}
 	function get_subject($id){
 		global $wpdb;
@@ -608,87 +630,91 @@ class vasthtml{
 		if(isset($_GET['notify']))
 			$this->notify_post();
 			
-		$posts = $this->get_posts($thread_id);
+		if($posts = $this->get_posts($thread_id)){
 
-		if($user_ID){
-			$op = get_usermeta($user_ID, "wpf_useroptions");
-			if($this->array_search($this->current_thread, (array)$op["notify_topics"], true))
-				$this->notify_msg = __("Remove this topic from your email notifications?", "vasthtml");
+
+			if($user_ID){
+				$op = get_usermeta($user_ID, "wpf_useroptions");
+				if($this->array_search($this->current_thread, (array)$op["notify_topics"], true))
+					$this->notify_msg = __("Remove this topic from your email notifications?", "vasthtml");
+				else
+					$this->notify_msg = __("Add this topic to your email notifications?", "vasthtml");
+			}
+				
+			$wpdb->query("UPDATE $this->t_threads SET views = views+1 WHERE id = $thread_id");
+			if($this->is_sticky())
+				$image = "normal_post_sticky.gif";
 			else
-				$this->notify_msg = __("Add this topic to your email notifications?", "vasthtml");
-		}
+				$image = "normal_post.gif";
+				
+			if(!$this->have_access($this->current_group)){
+				@ob_end_clean();
+				wp_die(__("Sorry, but you don't have access to this forum", "vasthtml"));
+			}
+
+			$out .= "<table cellpadding='0' cellspacing='0'>
+						<tr>
+							<td width='100%'>".$this->post_pageing($thread_id)."</td>
+							<td>".$this->topic_menu($thread_id)."
+							</td>
+						</tr>
+					</table>";
 			
-		$wpdb->query("UPDATE $this->t_threads SET views = views+1 WHERE id = $thread_id");
-		if($this->is_sticky())
-			$image = "normal_post_sticky.gif";
-		else
-			$image = "normal_post.gif";
 			
-		if(!$this->have_access($this->current_group))
-			wp_die(__("Sorry, but you don't have access to this forum", "vasthtml"));
+			$out .= "<div class='wpf'>
+						<table class='wpf-table' width='100%'>
+						<tr>
+							<th width='12%'><img src='$this->skin_url/images/topic/$image' align='left'/> ".__("Author", "vasthtml")."</th>
+							<th>".__("Topic: ", "vasthtml").$this->get_subject($thread_id)."</th>
+						</tr>
+					</table>";
+			$out .= "</div>";
 
-		$out .= "<table cellpadding='0' cellspacing='0'>
-					<tr>
-						<td width='100%'>".$this->post_pageing($thread_id)."</td>
-						<td>".$this->topic_menu($thread_id)."
-						</td>
-					</tr>
-				</table>";
-		
-		
-		$out .= "<div class='wpf'>
-					<table class='wpf-table' width='100%'>
-					<tr>
-						<th width='12%'><img src='$this->skin_url/images/topic/$image' align='left'/> ".__("Author", "vasthtml")."</th>
-						<th>".__("Topic: ", "vasthtml").$this->get_subject($thread_id)."</th>
-					</tr>
-				</table>";
-		$out .= "</div>";
+			foreach($posts as $post){
+					$class = ($class == "wpf-alt")?"":"wpf-alt";
+				$user = get_userdata($post->author_id);
+				$out .= "<table class='wpf-post-table' width='100%' id='postid-$post->id'>
+						<tr class='$class'>
+							<td valign='top' width='12%'>".
+								$this->profile_link($post->author_id)."
+								<div class='wpf-small'>";
+									if($post->author_id != 0){
+										$out .= $this->get_userrole($post->author_id)."<br />";
+										$out .=__("Posts:", "vasthtml")." ".$this->get_userposts_num($post->author_id)."<br />";
+										
+										if($this->opt["forum_use_gravatar"])
+											$out .= $this->get_avatar($post->author_id);
+									}
+								
+							$out .= "</div></td>
 
-		foreach($posts as $post){
-				$class = ($class == "wpf-alt")?"":"wpf-alt";
-			$user = get_userdata($post->author_id);
-			$out .= "<table class='wpf-post-table' width='100%' id='postid-$post->id'>
-					<tr class='$class'>
-						<td valign='top' width='12%'>".
-							$this->profile_link($post->author_id)."
-							<div class='wpf-small'>";
-								if($post->author_id != 0){
-									$out .= $this->get_userrole($post->author_id)."<br />";
-									$out .=__("Posts:", "vasthtml")." ".$this->get_userposts_num($post->author_id)."<br />";
-									
-									if($this->opt["forum_use_gravatar"])
-										$out .= $this->get_avatar($post->author_id);
-								}
-							
-						$out .= "</div></td>
-
-						<td valign='top'>
-							<table width='100%' cellspacing='0' cellpadding='0' class='wpf-meta-table' >
-								<tr>
-									<td class='wpf-meta' valign='top'>".$this->get_postmeta($post->id, $post->author_id)."</td>
-								</tr>
-								<tr>
-									<td valign='top' colspan='2'>".apply_filters('comment_text', $this->output_filter($post->text))."</td>
-								</tr>";
-								if($user->description){
-									$out .= "<tr><td class='user_desc'><small>".apply_filters('comment_text', $this->output_filter($user->description))."</small></td></tr>";
-								}
-							$out .= "</table>
-						</td>
-					</tr>";
-			$out .= "</table>";
+							<td valign='top'>
+								<table width='100%' cellspacing='0' cellpadding='0' class='wpf-meta-table' >
+									<tr>
+										<td class='wpf-meta' valign='top'>".$this->get_postmeta($post->id, $post->author_id)."</td>
+									</tr>
+									<tr>
+										<td valign='top' colspan='2' class='topic_text'>".apply_filters('comment_text', $this->output_filter($post->text))."</td>
+									</tr>";
+									if($user->description){
+										$out .= "<tr><td class='user_desc'><small>".apply_filters('comment_text', $this->output_filter($user->description))."</small></td></tr>";
+									}
+								$out .= "</table>
+							</td>
+						</tr>";
+				$out .= "</table>";
+			}
+			$out .= "<table cellpadding='0' cellspacing='0'>
+						<tr>
+							<td width='100%'>".$this->post_pageing($thread_id)."</td>
+							<td>".$this->topic_menu($thread_id, "bottom")."
+							</td>
+						</tr>
+					</table>";
+			
+			$this->o .= $out;
+			$this->footer();
 		}
-		$out .= "<table cellpadding='0' cellspacing='0'>
-					<tr>
-						<td width='100%'>".$this->post_pageing($thread_id)."</td>
-						<td>".$this->topic_menu($thread_id, "bottom")."
-						</td>
-					</tr>
-				</table>";
-		
-		$this->o .= $out;
-		$this->footer();
 	}
 
 	function get_postmeta($post_id, $author_id){
@@ -737,13 +763,13 @@ class vasthtml{
 			if($this->have_access($g->id)){
 			
 
-				$this->o .= "<div class='wpf'><table width='100%' class='wpf-table'>";
+				$this->o .= "<div class='wpf'><table width='100%' class='wpf-table forumsList'>";
 				$this->o .= "<tr><th colspan='4'><a href='".$this->get_grouplink($g->id)."'>".$this->output_filter($g->name)."</a></th></tr>";
 				$frs = $this->get_forums($g->id);
 				//if($frs)
 					//$this->o .= "<tr>";
 				foreach($frs as $f){
-					$alt = ($alt == "alt")?"":"alt";
+				$alt=($alt=="alt even")?"odd":"alt even";
 					$this->o .= "<tr class='$alt'>";
 					$image = "off.gif";
 					if($user_ID){
@@ -760,7 +786,7 @@ class vasthtml{
 						}
 					}
 					$this->o .= "
-							<td class='wpf-alt' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
+							<td class='wpf-alt forumIcon' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
 							<td valign='top'><strong><a href='".$this->get_forumlink($f->id)."'>"
 								.$this->output_filter($f->name)."</a></strong><br />"
 								.$this->output_filter($f->description);
@@ -807,7 +833,7 @@ class vasthtml{
 				//if($frs)
 					//$this->o .= "<tr>";
 				foreach($frs as $f){
-					$alt = ($alt == "alt")?"":"alt";
+				$alt=($alt=="alt even")?"odd":"alt even";
 					$this->o .= "<tr class='$alt'>";
 					$image = "off.gif";
 					if($user_ID){
@@ -824,7 +850,7 @@ class vasthtml{
 						}
 					}
 					$this->o .= "
-							<td class='wpf-alt' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
+							<td class='wpf-alt forumIcon' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
 							<td valign='top'><strong><a href='".$this->get_forumlink($f->id)."'>"
 								.$this->output_filter($f->name)."</a></strong><br />"
 								.$this->output_filter($f->description);
@@ -967,7 +993,8 @@ class vasthtml{
 		?>
 		<link rel='alternate' type='application/rss+xml' title="<?php echo __("Forums RSS", "vasthtml"); ?>" href="<?php echo $this->global_feed_url;?>" />
 		<link rel='stylesheet' type='text/css' href="<?php echo "$this->skin_url/style.css";?>"  />
-		
+      
+						
 		
 		<script language="JavaScript" type="text/javascript" src="<?php echo WPFURL."js/script.js"?>"></script>
 
@@ -1234,24 +1261,33 @@ class vasthtml{
 		function topic_menu($thread, $pos = "top"){
 			global $user_ID;
 			if($user_ID || $this->allow_unreg()){	
-			if($pos == "top")
-				$class = "mirrortab";
-			else
-				$class= "maintab";
-			if($this->is_moderator($user_ID, $this->current_forum)){
-				if($this->is_sticky())
-					$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmark as Sticky", "vasthtml")."</a></td>";
-				else
-					$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Mark as sticky", "vasthtml")."</a></td>";
+				if($pos == "top"){
+					$class = "mirrortab";
+				}else{
+					$class = "maintab";
+				}
+				if($this->is_moderator($user_ID, $this->current_forum)){
+					if($this->is_sticky()){
+						$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmake Sticky", "vasthtml")."</a></td>";
+					}else{
+						$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a></td>";
+					}
+					if($this->is_closed()){
+						$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a></td>";
+					}else{
+						$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>Close</a></td>";
+					}
 				}
 				$menu .= "<table cellpadding='0' cellspacing='0' style='margin-right:10px;' id='topicmenu'>";
-				$menu .= "<tr><td class='".$class."_first'>&nbsp;</td>
-						<td valign='top' class='".$class."_back' nowrap='nowrap'><a href='".$this->get_post_reply_link()."'>".__("Reply", "vasthtml")."</a></td>
-						<td class='".$class."_back' nowrap='nowrap'><a onclick='return notify();' href='".$this->get_threadlink($this->current_thread)."&amp;notify&amp;id=$this->current_thread'>".__("Notify", "vasthtml")."</a></td>
-						<td class='".$class."_back' nowrap='nowrap'><a href='$this->topic_feed_url"."$this->current_thread'>".__("RSS feed", "vasthtml")."</a></td>
-						$stick
-						<td valign='top' class='".$class."_last'>&nbsp;&nbsp;</td>
-						</tr></table>";
+				$menu .= "<tr><td class='".$class."_first'>&nbsp;</td>";
+				if(!$this->is_closed()){
+					$menu .= "<td valign='top' class='".$class."_back' nowrap='nowrap'><a href='".$this->get_post_reply_link()."'>".__("Reply", "vasthtml")."</a></td>";
+				}
+				$menu .= "<td class='".$class."_back' nowrap='nowrap'><a onclick='return notify();' href='".$this->get_threadlink($this->current_thread)."&amp;notify&amp;id=$this->current_thread'>".__("Notify", "vasthtml")."</a></td>
+				<td class='".$class."_back' nowrap='nowrap'><a href='$this->topic_feed_url"."$this->current_thread'>".__("RSS feed", "vasthtml")."</a></td>
+				".$stick.$closed."
+				<td valign='top' class='".$class."_last'>&nbsp;&nbsp;</td>
+				</tr></table>";
 			}
 			return $menu;
 		}
@@ -1259,54 +1295,65 @@ class vasthtml{
 		function setup_menu(){
 			global $user_ID;
 			$this->setup_links();
+
+			if(isset($_GET['closed']))
+				$this->closed_post();
 			
-			$link = "<a href='".$this->base_url."profile&amp;id=$user_ID' title='".__("My profile", "vasthtml")."'>".__("My Profile", "vasthtml")."</a>";
+			$link = "<a id='user_button' href='".$this->base_url."profile&amp;id=$user_ID' title='".__("My profile", "vasthtml")."'>".__("My Profile", "vasthtml")."</a>";
 
 			$menuitems = array(	
-							"home" 	=> "<a href='".$this->home_url."'>".__("Home", "vasthtml")."</a>", 
+							"home" 	    => "<a id='home_button' href='".$this->home_url."'>".__("Forum Home", "vasthtml")."</a>", 
 							"logout" 	=> "<a href='$this->logout_link'>".__("Log out", "vasthtml")."</a>",
 							"profile" 	=> $link,
-							"search" 	=> "<a href='$this->base_url"."search'>".__("Search", "vasthtml")."</a>",
-							"reply" 	=> "<a href='".$this->get_post_reply_link()."'>".__("Reply", "vasthtml")."</a>",
+							"search" 	=> "<a id='search_button' href='$this->base_url"."search'>".__("Search", "vasthtml")."</a>",
+							"reply" 	=> "<a id='reply_button' href='".$this->get_post_reply_link()."'>".__("Reply", "vasthtml")."</a>",
 							"new_topic" => "<a href='".$this->get_addtopic_link()."'>".__("New Topic", "vasthtml")."</a>",
-							"feed" 		=> "<a href='$this->topic_feed_url"."$this->current_thread'>".__("Feed", "vasthtml")."</a>",
-							"sticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Mark as Sticky", "vasthtml")."</a>",
-							"unsticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmark as sticky", "vasthtml")."</a>"
+							"feed" 		=> "<a id='rss_button' href='$this->topic_feed_url"."$this->current_thread'>".__("Feed", "vasthtml")."</a>",
+							"sticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a>",
+							"unsticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmake sticky", "vasthtml")."</a>",
+							"closed" 	=> "<a id='close_button' href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>Close</a>",
+							"unclosed" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a>",
+							"move" 		=> "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$this->current_thread'>Move Topic</a>"
 						);
 				
 				if($user_ID || $this->allow_unreg()){
 				
-				$menu = "<table cellpadding='0' cellspacing='0' style='margin-left:10px;' id='mainmenu'><tr>";
+				$menu = "<table cellpadding='0' cellspacing='5' id='mainmenu'><tr>";
 				$logged = "";
 					
-				$menu .= "<td class='maintab_first'>&nbsp;</td><td valign='top' class='maintab_back '>{$menuitems['home']}</td>";
+$menu .= "<td valign='top' class='menu_sub'>{$menuitems['home']}</td>";
 						if($user_ID)
-							$menu .= "<td valign='top' class='maintab_back'>{$menuitems['profile']}</td>";
-						$menu .= "<td valign='top' class='maintab_back'>{$menuitems['search']}</td>";
+							$menu .= "<td valign='top' class='menu_sub'>{$menuitems['profile']}</td>";
+						$menu .= "<td valign='top' class='menu_sub'>{$menuitems['search']}</td>";
 				
-				/*switch($this->current_view){
-					case FORUM: $menu .= "	<td valign='top' class='maintab_back'>{$menuitems['new_topic']}</td>
-											<td class='maintab_last'>&nbsp;</td>";
+				switch($this->current_view){
+					case FORUM: $menu .= "	<td valign='top' class='menu_sub'>{$menuitems['new_topic']}</td>
+											";
 						break;
-					case THREAD: $menu .= "<td valign='top' class='maintab_back'>{$menuitems['reply']}</td>";
+					case THREAD:
+											if(!$this->is_closed()){
+												$menu .= "<td valign='top' class='menu_sub'>{$menuitems['reply']}</td>";
+											}
 											
 											if($user_ID)
-												$menu .= "<td valign='top' class='maintab_back'>{$menuitems['feed']}</td>";
+												$menu .= "<td valign='top' class='menu_sub'>{$menuitems['feed']}</td>";
 											
 											if($this->is_moderator($user_ID, $this->current_forum)){
-												if($this->is_sticky())
-													$menu .= "<td valign='top' class='maintab_back'>{$menuitems['unsticky']}</td>";
-												else
-													$menu .= "<td valign='top' class='maintab_back'>{$menuitems['sticky']}</td>";
+												$menu .= "<td valign='top' class='menu_sub'>{$menuitems['move']}</td>";
+												if($this->is_sticky()){
+													$menu .= "<td valign='top' class='menu_sub'>{$menuitems['unsticky']}</td>";
+												}else{
+													$menu .= "<td valign='top' class='menu_sub'>{$menuitems['sticky']}</td>";
+												}
+												if($this->is_closed()){
+													$menu .= "<td valign='top' class='menu_sub'>{$menuitems['unclosed']}</td>";
+												}else{
+													$menu .= "<td valign='top' class='menu_sub'>{$menuitems['closed']}</td>";
+												}
 											}
-											$menu .= "<td class='maintab_last'>&nbsp;</td>";
-								break;
-								
-					default: $menu .= "<td class='maintab_last'>&nbsp;</td>";
-						break;
+											
 
-				}*/
-				$menu .= "<td class='maintab_last'>&nbsp;</td>";
+				}
 				$menu .= "</tr></table>";
 				}
 				return $menu;
@@ -1336,10 +1383,10 @@ class vasthtml{
 			if(!is_user_logged_in()){
 				return "<form action='".get_bloginfo('url')."/wp-login.php' method='post'>
 					<p>
-					<label for='log'><input type='text' name='log' id='log' value='".wp_specialchars(stripslashes($user_login), 1)."' size='12' /> ".__("Username", "vasthtml")."</label><br />
-					<label for='pwd'><input type='password' name='pwd' id='pwd' size='12' /> ".__("Password", "vasthtml")."</label><br />
-					<input type='submit' name='submit' value='Send' class='button' />
-					<label for='rememberme'><input name='rememberme' id='rememberme' type='checkbox' checked='checked' value='forever' /> ".__("Remember me", "vasthtml")."</label><br />
+					<label for='log'>".__("Username: ", "vasthtml")."<input type='text' name='log' id='log' value='".wp_specialchars(stripslashes($user_login), 1)."' size='12' /> </label>
+					<label for='pwd'>".__("Password: ", "vasthtml")."<input type='password' name='pwd' id='pwd' size='12' /> 
+					<input type='submit' name='submit' value='Login' class='button' /></label>
+					<label for='rememberme'><input name='rememberme' id='rememberme' type='checkbox' checked='checked' value='forever' /> ".__("Remember", "vasthtml")."</label>
 					</p>
 					<input type='hidden' name='redirect_to' value='".$_SERVER['REQUEST_URI']."'/>
 				</form>";
@@ -1442,7 +1489,7 @@ function forum_get_group_from_post($thread_id){
 		if($this->current_view == NEWTOPIC)
 			$trail .= " <strong>&raquo;</strong> ".__("New Topic", "vasthtml") ;
 
-		return "<p id='trail'>$trail</p>";
+		return "<p id='trail' class='breadcrumbs'>$trail</p>";
 
 	}
 	
@@ -1465,10 +1512,10 @@ function forum_get_group_from_post($thread_id){
 			setcookie("wpfsession", time(), 0, "/");
 	}
 
-	function get_avatar($user_id, $size = 65){
+	function get_avatar($user_id, $size = 60){
 		
 		if($this->opt['forum_use_gravatar'] == 'true')
-			return get_avatar($user_id, 65);
+			return get_avatar($user_id, 60);
 		else
 			return "";
 	}
@@ -1477,14 +1524,13 @@ function forum_get_group_from_post($thread_id){
 	function header(){
 		global $user_ID, $user_login;
 		$this->setup_links();
-		if($user_ID){
+		if($user_ID){ 
 			$welcome = __("Welcome", "vasthtml"). " <strong>$user_login</strong>";
-			$meta .= "".__("Your last visit was:", "vasthtml")." ".$this->last_visit(true)."<br />";
+			$meta .= "".__("<div style='float:left'>Your last visit was:", "vasthtml")." ".$this->last_visit(true)."<br />";
 			$meta .= "<a href='".$this->base_url."shownew'>".__("Show new topics since your last visit.", "vasthtml")."</a><br />";
-			$meta .= "<a href='http://indexjunkie.com'>".__("Image Hosting By Index Junkie.", "vasthtml")."</a><br />";
 			//$meta .= "<a href='".wp_logout_url()."'>".__("Log out", "vasthtml")."</a>";
-			$meta .= "<a href='".wp_nonce_url( site_url("wp-login.php?action=logout$redirect", 'login'), 'log-out' )."'>".__("Log out", "vasthtml")."</a>";
-			$avatar = "<td class='wpf-alt' width='6%'>".$this->get_avatar($user_ID, 48)."</td>";
+			$meta .= "<a href='".wp_nonce_url( site_url("wp-login.php?action=logout$redirect", 'login'), 'log-out' )."'>".__("Log out", "vasthtml")."</a></div>";
+			$avatar = "<td class='wpf-alt' width='6%'>".$this->get_avatar($user_ID, 60)."</td>";
 			$colspan = "colspan = '2'";
 
 		}
@@ -1494,16 +1540,16 @@ function forum_get_group_from_post($thread_id){
 			$colspan = "";
 		}
 		if(!$user_ID && !$this->allow_unreg()){
-			$meta = __("Welcome Guest, posting in this forum require", "vasthtml")." <a href='$this->reg_link'>".__("registration.", "vasthtml")."</a>".$this->login_form();
+			$meta = __("<div id='forumLogin'><p>Welcome Guest, posting in this forum requires", "vasthtml")." <a href='$this->reg_link'>".__("registration.", "vasthtml")."</a></p>".$this->login_form();
 			$colspan = "";
 		}
 		$o = "<div class='wpf'>
 				
-				<table width='100%' class='wpf-table' >
+				<table width='100%' class='wpf-table' id='profileHeader'>
 					<tr>
 						<th $colspan ><h4 style='float:left;'>$welcome&nbsp;</h4>
 						<a style='float:right;' href='#' onclick='shrinkHeader(!current_header); return false;'>
-							<img id='upshrink'  src='$this->skin_url/images/upshrink.gif' alt='".__("Show or hide header", "vasthtml")."'/></a>
+							<img id='upshrink'  src='$this->skin_url/images/upshrink.png' alt='".__("Show or hide header", "vasthtml")."'/></a>
 						</th>
 					</tr>
 			
@@ -1517,7 +1563,7 @@ function forum_get_group_from_post($thread_id){
 							<div>
 								<form name='wpf_search_form' method='post' action='$this->base_url"."search'>
 									<input type='text' name='search_words' />
-									<input type='submit' name='search_submit' value='".__("Search", "vasthtml")."' />
+									<input type='submit' name='search_submit' value='".__("Search forums", "vasthtml")."' />
 								</form>
 							</div>
 						</th>
@@ -1588,11 +1634,61 @@ function forum_get_group_from_post($thread_id){
 		if($this->is_moderator($user_ID, $this->current_forum)){
 			$wpdb->query("DELETE FROM $this->t_posts WHERE parent_id = $topic");
 			$wpdb->query("DELETE FROM $this->t_threads WHERE id = $topic");
-		}
-		else
+		}else{
+			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
+		}
 		
 	}
+	
+	function getNewForumID(){
+		global $user_level, $user_ID, $wpdb;
+		$topic = !empty($_GET['topic']) ? (int)$_GET['topic'] : 0;
+		$topic = !empty($_GET['t']) ? (int)$_GET['t'] : $topic;
+		if($this->is_moderator($user_ID, $this->current_forum)){
+			// move topic html!?!
+			$currentForumID = $this->check_parms($_GET['f']);
+			$strOUT = '
+			<form id="" method="post" action="?vasthtmlaction=viewforum&f='.$currentForumID.'&move_topic&topic='.$topic.'">
+			Move "<strong>'.$this->get_subject($topic).'</strong>" to new forum: <select id="newForumID" name="newForumID" onchange="location=\'?vasthtmlaction=viewforum&f='.$currentForumID.'&move_topic&topic='.$topic.'&g='.$g.'&newForumID=\'+this.options[this.selectedIndex].value">';
+			$frs	= $this->get_forums($g);
+			foreach($frs as $f){
+				$strOUT .= '
+				<option value="'.$f->id.'"'.($f->id==$currentForumID ? ' selected="selected"' : '').'>'.$f->name.'</option>';
+			}
+			$strOUT .= '
+			</select>
+			<noscript><input type="submit" value="Go!" /></noscript>
+			</form>';
+
+			return $strOUT;
+		}else{
+			@ob_end_clean();
+			wp_die(__("Cheating, are we?", "vasthtml"));
+		}
+		
+	}
+	
+	function move_topic(){
+		global $user_level, $user_ID, $wpdb;
+		$topic = $_GET['topic'];
+		$currentForumID = $this->check_parms($_GET['f']);
+		$newForumID = !empty($_GET['newForumID']) ? (int)$_GET['newForumID'] : 0;
+		$newForumID = !empty($_POST['newForumID']) ? (int)$_POST['newForumID'] : $newForumID;
+		if($this->is_moderator($user_ID, $this->current_forum)){
+			$strSQL = "UPDATE $this->t_threads SET parent_id = $newForumID WHERE id = $topic";
+			//echo "strSQL=$strSQL<br />\n";
+			$wpdb->query($strSQL);
+			@ob_end_clean();
+			@header("location: ?vasthtmlaction=viewforum&f=".$newForumID);
+			@exit;
+		}else{
+			@ob_end_clean();
+			wp_die(__("Cheating, are we?", "vasthtml"));
+		}
+		
+	}
+
 	function remove_post(){
 		global $user_level, $user_ID, $wpdb;
 		$id = $_GET['id'];
@@ -1609,14 +1705,16 @@ function forum_get_group_from_post($thread_id){
 		if($del == "ok"){
 			$wpdb->query("DELETE FROM $this->t_posts WHERE id = $id");
 			$this->o .= "<div class='updated'>".__("Post deleted", "vasthtml")."</div>";		
-		}
-		else
+		}else{
+			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
+		}
 
 	}
 	function sticky_post(){
 		global $user_level, $user_ID, $wpdb;
 		if(!$this->is_moderator($user_ID, $this->current_forum) || $user_level < 8){
+			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
 		}
 		$id = $_GET['id'];
@@ -1656,18 +1754,44 @@ function forum_get_group_from_post($thread_id){
 		// Update meta
 		update_usermeta($user_ID, "wpf_useroptions", $op);
 	}
-	
 	function is_sticky($thread_id = ''){
 		global $wpdb;
-		if(!$thread_id)
+		if($thread_id)
 			$id = $thread_id;
 		else 
 			$id = $this->current_thread;
-		$status = $wpdb->get_var("select status from $this->t_threads where id = $this->current_thread");
-		 if($status == "sticky")
+		$status = $wpdb->get_var("select status from $this->t_threads where where id = $id");
+		if($status == "sticky")
 		 	return true;
 		 return false;
 
+	}
+	function closed_post(){
+		global $user_level, $user_ID, $wpdb;
+		if(!$this->is_moderator($user_ID, $this->current_forum) || $user_level < 8){
+			@ob_end_clean();
+			wp_die(__("Cheating, are we?", "vasthtml"));
+		}
+		$strSQL = "update $this->t_threads set closed = '".$_GET['closed']."' where id = ".$_GET['id'];
+		//echo "strSQL=$strSQL<br />";
+		$wpdb->query($strSQL);
+	}
+	function is_closed($thread_id = ''){
+		global $wpdb;
+		if($thread_id){
+			$id = $thread_id;
+		}else{
+			$id = $this->current_thread;
+		}
+		$strSQL = "select closed from $this->t_threads where id = $id";
+		//echo "strSQL=$strSQL<br />";
+		$closed = $wpdb->get_var($strSQL);
+		//echo "closed=$closed<br />";
+		if($closed){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	function allow_unreg(){
 		if($this->opt['forum_require_registration'] == false)
@@ -1692,20 +1816,18 @@ function forum_get_group_from_post($thread_id){
 	
 	function form_buttons(){
 			
-	$button .= "<a title='".__("Bold", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[b]\", \"[/b]\", 			document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/b.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Bold' 		title='Bold' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Italic", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[i]\", \"[/i]\", 			document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/i.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Italic' 		title='Italic' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Underline", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[u]\", \"[/u]\", 			document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/u.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Underline' 	title='Underline' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Code", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[code]\", \"[/code]\", 	document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/code.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Code' 		title='Code' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Quote", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[quote]\", \"[/quote]\", 	document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/quote.png' /></a>\n";	//align='bottom' width='23' height='22' alt='Quote' 		title='Quote' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("List", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[list]\", \"[/list]\", 	document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/list.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='List' 		title='List' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("List item", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[*]\", \"\", 			document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/li.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='List' 		title='List' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";	
-	$button .= "<a title='".__("Link", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[url]\", \"[/url]\", 		document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/url.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Link' 		title='Link' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Image", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[img]\", \"[/img]\", 		document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/img.png' 	/></a>\n";	//align='bottom' width='23' height='22' alt='Image' 		title='Image' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
-	$button .= "<a title='".__("Email", "vasthtml")."'href='javascript:void(0);' onclick='surroundText(\"[email]\", \"[/email]\", 	document.forms.addform.message); return false;'><img src='$this->skin_url/images/bbc/email.png' /></a>\n";	//align='bottom' width='23' height='22' alt='Image' 		title='Image' style='background-image: url($this->skin_url/images/bbc/bbc_bg.gif); margin: 1px 2px 1px 1px;' /></a>\n";
+		$button = '
+	<a title="'.__("Bold", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[b]", "[/b]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/b.png" /></a>
+	<a title="'.__("Italic", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[i]", "[/i]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/i.png" /></a>
+	<a title="'.__("Underline", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[u]", "[/u]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/u.png" /></a>
+	<a title="'.__("Code", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[code]", "[/code]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/code.png" /></a>
+	<a title="'.__("Quote", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[quote]", "[/quote]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/quote.png" /></a>
+	<a title="'.__("List", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[list]", "[/list]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/list.png" /></a>
+	<a title="'.__("List item", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[*]", "", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/li.png" /></a>
+	<a title="'.__("Link", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[url]", "[/url]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/url.png" /></a>
+	<a title="'.__("Image", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[img]", "[/img]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/img.png" /></a>
+	<a title="'.__("Email", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[email]", "[/email]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/email.png" /></a>';
 
-	
-			
-			
 		return $button;
 	}
 	
@@ -1721,7 +1843,7 @@ function forum_get_group_from_post($thread_id){
 								<tr>
 								</tr>
 								<tr>
-									<td width='3%' align='center'><img alt='' src='$this->skin_url/images/icons/info.gif' /></td>
+									<td width='3%' class='forumIcon' align='center'><img alt='' src='$this->skin_url/images/icons/info.gif' /></td>
 									<td>
 										".$this->num_posts_total()." ".__("Posts", "vasthtml")." ".__("in", "vasthtml")." ".$this->num_threads_total()." ".__("Topics ".__("Made by", "vasthtml")."", "vasthtml")." ".count($this->get_users())." ".__("Members", "vasthtml").". ".__("Latest Member:", "vasthtml")." ".$this->profile_link($this->latest_member())."
 										<br />".$this->get_lastpost_all()."
@@ -1774,7 +1896,7 @@ function forum_get_group_from_post($thread_id){
 							$starter_id = $wpdb->get_var("SELECT starter FROM $this->t_threads WHERE id = $thread->id");
 							
 							$o .= "<tr>
-							<td align='center'>".$this->get_topic_image($thread->id)."</td>
+							<td align='center' class='forumIcon'>".$this->get_topic_image($thread->id)."</td>
 							<td class='wpf-alt $sticky' align='top'><a href='"
 								.$this->get_threadlink($thread->id)."'>"
 								.$this->output_filter($this->get_threadname($thread->id))."</a> $page
@@ -1817,7 +1939,7 @@ function forum_get_group_from_post($thread_id){
 								<tr>
 									<td width='20%'><strong>".__("Name:", "vasthtml")."</strong></td>
 									<td>$user->first_name $user->last_name</td>
-									<td rowspan='9' valign='top' width='1%'>".$this->get_avatar($user_id, 96)."</td>
+									<td rowspan='9' valign='top' width='1%'>".$this->get_avatar($user_id, 60)."</td>
 
 								</tr>
 								<tr>
@@ -1889,8 +2011,8 @@ function forum_get_group_from_post($thread_id){
 						<tr>
 						<tr>
 							<td colspan='2'>
-								<div style='padding:10px; border: 1px solid #6c6c6c; background:#f6f6f6' >
-									 <a href='javascript:void(0);' onclick='expandCollapseBoards(); return false;'><img alt='' src='$this->skin_url/images/upshrink2.gif' id='search_coll'/><b> ".__("Choose a forum to search in, or search all", "vasthtml")."</b></a><br />";
+								<div style='padding:10px;' >
+									 <a href='javascript:void(0);' onclick='expandCollapseBoards(); return false;'><img alt='' src='$this->skin_url/images/upshrink2.png' id='search_coll'/><b> ".__("Choose a forum to search in, or search all", "vasthtml")."</b></a><br />";
 								$o.= "<table cellspacing='0' cellpadding='0' width='100%' id='searchBoardsExpand' style='display:none'>";
 									$i = 0;
 									
@@ -2065,11 +2187,11 @@ function forum_get_group_from_post($thread_id){
 		if($post_count <= $this->opt['hot_topic']){
 			return "<img src='$this->skin_url/images/topic/normal_post.gif' alt='".__("Normal topic", "vasthtml")."' title='".__("Normal topic", "vasthtml")."'>";
 		}
-		if($post_count > $this->opt['hot_topic']){
-			return "<img src='$this->skin_url/images/topic/hot_post.gif' alt='".__("Hot topic", "vasthtml")."' title='".__("Hot topic", "vasthtml")."'>";
-		}
 		if($post_count > $this->opt['veryhot_topic']){
-			return "<img src='$this->skin_url/images/topic/veryhot_post.gif' alt='".__("Very Hot topic", "vasthtml")."' title='".__("Very Hot topic", "vasthtml")."'>";
+			return "<img src='$this->skin_url/images/topic/my_hot_post.gif' alt='".__("Hot topic", "vasthtml")."' title='".__("Hot topic", "vasthtml")."'>";
+		}
+		if($post_count > $this->opt['hot_topic']){
+			return "<img src='$this->skin_url/images/topic/hot_post.gif' alt='".__("Very Hot topic", "vasthtml")."' title='".__("Very Hot topic", "vasthtml")."'>";
 		}
 
 	}

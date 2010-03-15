@@ -6,7 +6,7 @@
 	$out .= $this->header();
 	
 	$out .= "<form action='".WPFURL."wpf-insert.php' name='addform' method='post'>";
-	$out .= "<table class='wpf-table' border='1' width='100%'>
+	$out .= "<table class='wpf-table' width='100%'>
 			<tr>
 				<th colspan='2'>".__("Post new Topic", "vasthtml")."</th>
 			</tr>
