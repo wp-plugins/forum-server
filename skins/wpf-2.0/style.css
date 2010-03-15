@@ -4,7 +4,7 @@
 	Author: Fredrik Fahlstad
 	Author url: http://www.fahlstad.se
 	WP-Forum url: http://www.fahlstad.se/wp-plugins/wp-forum
-	Version: 1.0
+	Version: 1.1
 */
 #wpf-wrapper{
 	line-height: normal;
@@ -21,6 +21,9 @@
 .wpf-table a, .wpf-post-table a, #wpf-wrapper p a, #wpf-wrapper span a{
 	color: #21759b;
 	text-decoration: none;
+}
+.wpf-table th a {
+	color: #fff;
 }
 table.search td{
 	border: none;
@@ -72,6 +75,9 @@ ul#wpf-menu li, .wpf-postmeta li{
 	padding-left: 5px;
 	padding-right: 5px;
 	padding: 5px;
+}
+.wpf-table textarea {
+	width: 98%;
 }
 #wpf-wrapper .wpf{
 	padding: 1px;
