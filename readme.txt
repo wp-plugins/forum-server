@@ -12,10 +12,10 @@ This Wordpress plugin is a complete forum system for your wordpress blog.
 
 == Description ==
 
-This Wordpress plugin is a complete forum system for your wordpress blog. 
-The forum is built in so no work is needed by you to intergrate it into your site. 
-This is a much more advanced and better than the WP-Forum plugin but the 
-original code did come from there.
+WP Forum Server :  A complete forum system for your wordpress blog. 
+The forum is a plugin, so no additional work is needed to integrate it into your site.
+
+WP Forum Server is a an advanced, stable fork of WP Forum.
 
 If there are any problems installing this plugin 
 please visit the site at http://vasthtml.com/js/wordpress-forum-server/
