@@ -8,12 +8,13 @@ if(!class_exists('vasthtml')){
 class vasthtml{
 
 	function vasthtml(){
+		
 		add_action("admin_menu", array(&$this,"add_admin_pages"));
 		add_action("admin_head", array(&$this, "admin_header"));
 		add_action("wp_head", array(&$this, "setup_header"));
 		add_action("plugins_loaded", array(&$this, "wpf_load_widget"));
 		add_action("wp_footer", array(&$this, "wpf_footer"));
-		
+			
 		$this->init(); 
 		
 	}
@@ -58,6 +59,7 @@ class vasthtml{
 	
 	// Initialize varables
 	function init(){
+		
 		global $table_prefix, $user_ID;
 		
 		$this->page_id			= $this->get_pageid();
@@ -115,7 +117,8 @@ class vasthtml{
 		
 		// Get the options
 		$this->opt = get_option('vasthtml_options');
-		$this->skin_url = WPFURL."skins/".$this->opt['forum_skin'];				
+		$this->skin_url = WPFURL."skins/".$this->opt['forum_skin'];	
+		
 	}
 	
 	// Add admin pages
@@ -281,7 +284,7 @@ class vasthtml{
 	}
 	function get_pageid(){
 		global $wpdb;
-		return $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE post_content  LIKE '%<!--VASTHTML-->%' AND post_status = 'publish' AND post_type = 'page'");
+		return $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE (post_content  LIKE '%<!--VASTHTML-->%' OR post_content  LIKE '%[forumServer]%') AND post_status = 'publish' AND post_type = 'page'");
 	}
 	function get_groups($id = ''){
 		global $wpdb;
@@ -307,7 +310,7 @@ class vasthtml{
 		$limit = "$start, $end";
 
 		if($id){
-			$threads = $wpdb->get_results("SELECT * FROM $this->t_threads WHERE parent_id = $id AND status='open' ORDER BY last_post ".SORT_ORDER." LIMIT $limit");
+			$threads = $wpdb->get_results("SELECT * FROM $this->t_threads WHERE parent_id = $id AND status != 'sticky' ORDER BY last_post ".SORT_ORDER." LIMIT $limit");
 			return $threads;
 		}
 		else
@@ -391,11 +394,12 @@ class vasthtml{
 	}
 	
 	function go($content){
+			
 		$start_time = microtime(true);
-
 		global $user_ID;
-		if(!preg_match('|<!--VASTHTML-->|', $content))	
+		if(!preg_match('|<!--VASTHTML-->|', $content) && !preg_match('|\[forumServer\]|', $content))	
 			return $content;
+
 		get_currentuserinfo();
 		if($user_ID){
 			if(get_usermeta($user_ID, 'wpf_useroptions') == ''){
@@ -420,6 +424,7 @@ class vasthtml{
 						@ob_end_clean();
 						wp_die(__("Cheating, are we?", "vasthtml"));
 					}else{
+						$this->current_thread = $this->check_parms($_GET['thread']);
 						include(WPFPATH.'wpf-post.php');
 					}
 					break;
@@ -441,13 +446,19 @@ class vasthtml{
 		$load =  __("Page loaded in:", "vasthtml")." ".round($end_time-$start_time, 3)." ".__("seconds.", "vasthtml")."";
 
 		$this->o .= "<div id='wpf-info'><small>
-			".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin website design'>LucidCrew</a> <br /> 
+			".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br /> 
 			".__("Version:", "vasthtml").$this->get_version()."; 
 			$load</small>
 		</div>";
 		
-		return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
-
+		$result = '';
+		if(preg_match('|\[forumServer\]|', $content) ) {
+			return preg_replace('|\[forumServer\]|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+			
+		} else {
+			return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+		}
+		
 	}
 	function get_version(){
 	$plugin_data = implode('', file(ABSPATH."wp-content/plugins/".WPFPLUGIN."/wpf-main.php"));
@@ -471,7 +482,7 @@ class vasthtml{
 		global $wpdb;
 		$post = $wpdb->get_row("select `date`, author_id, id from $this->t_posts where parent_id = $thread_id order by `date` DESC limit 1");
 		
-		return __("Latest Post by", "vasthtml")." ".$this->profile_link($post->author_id)."<br />".__("on", "vasthtml")." ".date($this->opt['forum_date_format'], strtotime($post->date));
+		return !empty($post) ? __("Latest Post by", "vasthtml")." ".$this->profile_link($post->author_id)."<br />".__("on", "vasthtml")." ".date($this->opt['forum_date_format'], strtotime($post->date)) : false;
 	}
 	function get_lastpost_all(){
 		global $wpdb;
@@ -526,6 +537,7 @@ class vasthtml{
 									<th width='22%'>".__("Last post", "vasthtml")."</th>
 								</tr>";
 		/***************************************************************************************/
+				
 			if($sticky_threads){
 				$out .= "<tr><th class='wpf-bright' colspan='6'>".__("Sticky Topics", "vasthtml")."</th></tr>";
 				foreach($sticky_threads as $thread){
@@ -564,6 +576,9 @@ class vasthtml{
 								
 				$out .= "<tr><th class='wpf-bright forumTopics' colspan='6'>".__("Forum Topics", "vasthtml")."</th></tr>";
 				}
+				echo '<pre>';
+				
+				echo '</pre>';
 				foreach($threads as $thread){
 					$alt=($alt=="alt even")?"odd":"alt even";
 					if($user_ID){
@@ -581,11 +596,14 @@ class vasthtml{
 						$strCommands	= "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
 						$del			= "<small class='adminActions'>$strCommands</small>";
 					}
+					
+					$close = $this->is_closed($thread->id) ? '[closed] ': '';
+					
 					$out .= "<tr class='$alt'>
 									<td class='forumIcon' align='center'>".$this->get_topic_image($thread->id)."</td>
 									<td class='wpf-alt'><span class='topicTitle'><a href='"
 										.$this->get_threadlink($thread->id)."'>"
-										.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
+										.$close.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
 									</td>
 									
 									<td>".$this->profile_link($thread->starter)."</td>
@@ -613,13 +631,15 @@ class vasthtml{
 	}
 
 	function showthread($thread_id){
-			
+	
 		global $wpdb, $user_ID;
 
 		$this->current_group = $this->forum_get_group_from_post($thread_id);
 		$this->current_forum = $this->get_parent_id(THREAD, $thread_id);
 		$this->current_thread = $thread_id;
 		$this->header();
+		
+		
 		
 		if(isset($_GET['remove_post']))
 			$this->remove_post();
@@ -669,7 +689,7 @@ class vasthtml{
 						</tr>
 					</table>";
 			$out .= "</div>";
-
+			
 			foreach($posts as $post){
 					$class = ($class == "wpf-alt")?"":"wpf-alt";
 				$user = get_userdata($post->author_id);
@@ -898,13 +918,13 @@ class vasthtml{
 	
 	function num_threads($forum){
 		global $wpdb;
-		return $wpdb->get_var("select count(id) from $this->t_threads where parent_id = $forum");
+		return $wpdb->get_var("select count(id) from $this->t_threads where parent_id = $forum ");
 	}
 	
 	function num_posts_forum($forum){
 		global $wpdb;
 		
-		return $wpdb->get_var("SELECT count($this->t_posts.id) FROM $this->t_posts INNER JOIN $this->t_threads ON $this->t_posts.parent_id=$this->t_threads.id WHERE $this->t_threads.parent_id = $forum ORDER BY $this->t_posts.date DESC");
+		return $wpdb->get_var("SELECT count($this->t_posts.id) FROM $this->t_posts INNER JOIN $this->t_threads ON $this->t_posts.parent_id=$this->t_threads.id WHERE $this->t_threads.parent_id = $forum  ORDER BY $this->t_posts.date DESC");
 
 	}
 	
@@ -915,7 +935,7 @@ class vasthtml{
 	
 	function num_posts($thread_id){
 		global $wpdb;
-		return $wpdb->get_var("select count(id) from $this->t_posts where parent_id = $thread_id");
+		return $wpdb->get_var("select count(id) from $this->t_posts where parent_id = $thread_id ");
 	}
 
 	function num_threads_total(){
@@ -1158,7 +1178,8 @@ class vasthtml{
 			  author_id int(11) NOT NULL default '0',
 			  `subject` varchar(255) NOT NULL default '',
 			  views int(11) NOT NULL default '0',
-			  PRIMARY KEY  (id)
+			  PRIMARY KEY  (id),
+			  FULLTEXT(`text`)
 			);";
 	
 	
@@ -1171,7 +1192,9 @@ class vasthtml{
 			  `date` datetime NOT NULL default '0000-00-00 00:00:00',
 			  `status` varchar(20) NOT NULL default 'open',
 			  starter int(11) NOT NULL,
-			  PRIMARY KEY  (id)
+			  PRIMARY KEY  (id),
+			  FULLTEXT(`subject`)
+			  
 			);";
 			
 			// 1.7.7
@@ -1218,8 +1241,9 @@ class vasthtml{
 			$xyquery5="ALTER TABLE ".$table_groups." ADD usergroups varchar(255);";
 			$xyquery6="ALTER TABLE ".$table_threads." CHANGE forum_id parent_id int(11);";
 			$xyquery7="ALTER TABLE ".$table_posts." CHANGE thread_id parent_id int(11);";
-			$xyquery8="ALTER TABLE '".$table_posts."' ADD FULLTEXT ( `text` );";
-			
+			$xyquery8="ALTER TABLE `".$table_posts."` ADD FULLTEXT ( `text` );";
+			$xyquery9="ALTER TABLE `".$table_threads."` ADD FULLTEXT ( `subject` );";
+
 			// 1.7.3
 			maybe_add_column($table_groups, sort, $xyquery1);
 			maybe_add_column($table_forums, sort,$xyquery2);
@@ -1227,12 +1251,16 @@ class vasthtml{
 			// 1.7.5
 			maybe_add_column($table_threads, last_post, $xyquery3);
 			
-			// 2.0
+			// 1.5
 			maybe_add_column($table_groups, description, $xyquery4);
 			maybe_add_column($table_groups, usergroups, $xyquery5);
 			maybe_add_column($table_groups, parent_id, $xyquery6);
 			maybe_add_column($table_posts,  parent_id, $xyquery7);
+			drop_index($table_posts, 'text');
 			$wpdb->query($xyquery8);
+			drop_index($table_threads, 'subject');
+			$wpdb->query($xyquery9);
+
 
 			$this->convert_moderators();
 			
@@ -1268,7 +1296,7 @@ class vasthtml{
 				}
 				if($this->is_moderator($user_ID, $this->current_forum)){
 					if($this->is_sticky()){
-						$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmake Sticky", "vasthtml")."</a></td>";
+						$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unstick", "vasthtml")."</a></td>";
 					}else{
 						$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a></td>";
 					}
@@ -1310,7 +1338,7 @@ class vasthtml{
 							"new_topic" => "<a href='".$this->get_addtopic_link()."'>".__("New Topic", "vasthtml")."</a>",
 							"feed" 		=> "<a id='rss_button' href='$this->topic_feed_url"."$this->current_thread'>".__("Feed", "vasthtml")."</a>",
 							"sticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a>",
-							"unsticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unmake sticky", "vasthtml")."</a>",
+							"unsticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unstick", "vasthtml")."</a>",
 							"closed" 	=> "<a id='close_button' href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>Close</a>",
 							"unclosed" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a>",
 							"move" 		=> "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$this->current_thread'>Move Topic</a>"
@@ -1481,7 +1509,7 @@ function forum_get_group_from_post($thread_id){
 			$trail .= " <strong>&raquo;</strong> ".__("Profile Info", "vasthtml");
 			
 		if($this->current_view == POSTREPLY)
-			$trail .= " <strong>&raquo;</strong> ".__("Post Reply", "vasthtml");
+			$trail .= " <strong>&raquo;</strong> ".__("Post Reply", "vasthtml") ;
 			
 		if($this->current_view == EDITPOST)
 			$trail .= " <strong>&raquo;</strong> ".__("Edit Post", "vasthtml") ;
@@ -1732,10 +1760,12 @@ function forum_get_group_from_post($thread_id){
 	function notify_post(){
 		global $wpdb, $user_ID;
 		$id = $_GET['id'];
+		
 		$op = get_usermeta($user_ID, "wpf_useroptions");
 		$topics = $op['notify_topics'];
-		
+		$topics = is_array($topics) ? $topics : array();
 		// Add topic
+		
 		if(!$this->array_search($id, $topics, TRUE)){
 			$topics[] = $id;	
 		}
@@ -1745,6 +1775,7 @@ function forum_get_group_from_post($thread_id){
 			$key = array_search($id, $topics, TRUE);
    			unset($topics[$key]);
 		}
+		
 		// Build array
 		$op = array(	"allow_profile" => $op['allow_profile'], 
 						"notify" => $op['notify'], 
@@ -1760,7 +1791,8 @@ function forum_get_group_from_post($thread_id){
 			$id = $thread_id;
 		else 
 			$id = $this->current_thread;
-		$status = $wpdb->get_var("select status from $this->t_threads where where id = $id");
+		$status = $wpdb->get_var("select status from $this->t_threads where id = $id");
+		
 		if($status == "sticky")
 		 	return true;
 		 return false;
@@ -1772,7 +1804,11 @@ function forum_get_group_from_post($thread_id){
 			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
 		}
-		$strSQL = "update $this->t_threads set closed = '".$_GET['closed']."' where id = ".$_GET['id'];
+		if (empty($_GET['closed'])) {
+			$strSQL = "update $this->t_threads set status = 'open' where id = ".$_GET['id'];
+		}else{
+			$strSQL = "update $this->t_threads set status = 'closed' where id = ".$_GET['id'];
+		}
 		//echo "strSQL=$strSQL<br />";
 		$wpdb->query($strSQL);
 	}
@@ -1783,15 +1819,12 @@ function forum_get_group_from_post($thread_id){
 		}else{
 			$id = $this->current_thread;
 		}
-		$strSQL = "select closed from $this->t_threads where id = $id";
-		//echo "strSQL=$strSQL<br />";
-		$closed = $wpdb->get_var($strSQL);
+		$status = $wpdb->get_var("select status from $this->t_threads where id = $id");
 		//echo "closed=$closed<br />";
-		if($closed){
+		if($status == "closed")
 			return true;
-		}else{
-			return false;
-		}
+		return false;
+		
 	}
 	function allow_unreg(){
 		if($this->opt['forum_require_registration'] == false)
@@ -1985,7 +2018,7 @@ function forum_get_group_from_post($thread_id){
 		global $wpdb;
 		$this->current_view = SEARCH;
 		$this->header();
-		
+	
 		if(!isset($_POST['search_submit'])){
 		$groups = $this->get_groups();
 
@@ -2083,10 +2116,10 @@ function forum_get_group_from_post($thread_id){
 			else
 				$w = "IN($a)";
 				
-			$sql = "SELECT $this->t_threads.parent_id as pt, $this->t_posts.id, text, $this->t_posts.subject, $this->t_posts.parent_id, $this->t_posts.`date`, MATCH ($what) AGAINST ('$search_string') AS score 
-			FROM $this->t_posts inner join $this->t_threads on $this->t_posts.parent_id = $this->t_threads.id 
+			$sql = "SELECT $this->t_threads.subject, $this->t_threads.id, $this->t_threads.`date`, (MATCH ($this->t_threads.subject) AGAINST ('$search_string')+MATCH ($this->t_posts.text) AGAINST ('$search_string')) AS score 
+			FROM $this->t_posts left join $this->t_threads on $this->t_posts.parent_id = $this->t_threads.id 
 			WHERE $this->t_threads.parent_id  $w
-			AND MATCH (text) AGAINST ('$search_string') $op";
+			AND (MATCH ($this->t_threads.subject) AGAINST ('$search_string') OR MATCH ($this->t_posts.text) AGAINST ('$search_string'))  $op group by $this->t_threads.id order by score desc ";
 			
 			 //$this->pre($sql);
 
@@ -2111,12 +2144,12 @@ function forum_get_group_from_post($thread_id){
 
 			foreach($results as $result){
 									
-				if($this->have_access($this->forum_get_group_from_post($result->parent_id))){
-				$starter = $wpdb->get_var("select starter from $this->t_threads where id = $result->parent_id");
+				if($this->have_access($this->forum_get_group_from_post($result->id))){
+				$starter = $wpdb->get_var("select starter from $this->t_threads where id = $result->id");
 				
 					$o .= "<tr>
-								<td valign='top' align='center'>".$this->get_topic_image($result->parent_id)."</td>
-								<td valign='top' class='wpf-alt'><a href='".$this->get_threadlink($result->parent_id)."'>".stripslashes($result->subject)."</a>
+								<td valign='top' align='center'>".$this->get_topic_image($result->id)."</td>
+								<td valign='top' class='wpf-alt'><a href='".$this->get_threadlink($result->id)."'>".stripslashes($result->subject)."</a>
 								</td>
 								<td valign='top'><small>".round($result->score*$const, 1)."%</small></td>
 								<td valign='top' nowrap='nowrap' class='wpf-alt'>".$this->profile_link($starter)."</td>
@@ -2207,14 +2240,15 @@ function forum_get_group_from_post($thread_id){
 	}
 	
 	
-	function notify_starter($thread, $subject, $content, $date){
+	function notify_starter($thread, $thread_subject, $content, $date){
+		
 		global $wpdb;
 		$users = $wpdb->get_results("SELECT user_id, meta_value FROM $wpdb->usermeta WHERE meta_key = 'wpf_useroptions'");
 			
 			$sender = get_bloginfo("name");
-			$subject = __("New reply on topic:", "vasthtml")." '$subject'.";
+			$subject = __("New reply on topic:", "vasthtml")." '$thread_subject'.";
 			$meta = __("Posted on: ", "vasthtml")." ".$this->format_date($date);
-			$message = wordwrap($this->get_threadlink($thread)."0\n\n$content\n\n$meta", 70);
+			$message = wordwrap("New reply on topic:\"$thread_subject\"\n\n".$this->get_threadlink($thread)."0\n\n$meta", 70);
 			$replyto = $sender;
 			$headers = "MIME-Version: 1.0\r\n" .
 				"From: $sender\n" . 
@@ -2223,13 +2257,17 @@ function forum_get_group_from_post($thread_id){
 
 		foreach($users as $u){
 			$p = unserialize($u->meta_value);
-			if($this->array_search($thread, $p['notify_topics'])){
 
+			if(in_array($thread, $p['notify_topics']) ){
+		
 				$user = get_userdata($u->user_id);
+			
 				$to = $user->user_email;
+
 				wp_mail($to, $subject, stripslashes($message), $headers);
 			}
 		}
+
 	}
 
 	

@@ -47,8 +47,8 @@ if (file_exists($root.'/wp-load.php')) {
 			 VALUES('$date', '$subject', '$forum_id', '$date', 'open', '$user_ID')";
 			
 			$wpdb->query($sql_thread);
-
-		$id = mysql_insert_id();
+			
+		$id=$wpdb->insert_id; 
 			$sql_post = "INSERT INTO $vasthtml->t_posts 
 						(text, parent_id, `date`, author_id, subject)
 				 VALUES('$content', '$id', '$date', '$user_ID', '$subject')";

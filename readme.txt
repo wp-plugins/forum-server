@@ -5,8 +5,8 @@ Donate link: http://vasthtml.com/
 Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
-Tested up to: 2.9.2
-Stable tag: 1.4
+Tested up to: 3.0
+Stable tag: 1.5
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -20,10 +20,6 @@ WP Forum Server is a an advanced, stable fork of WP Forum.
 If there are any problems installing this plugin 
 please visit the site at http://vasthtml.com/js/wordpress-forum-server/
 and download the plugin from there.
-
-If you want to show off your forum please 
-visit: http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
-and leave a link to your site.
    
 
 == Installation ==
@@ -65,6 +61,20 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.5 =
+* Fixed bug: Incompatibility with FireStats plugin and possibly certain other plugins, the bug also could cause a lot of database errors
+* Fixed bug: Duplicating topics due to plugin incompatibility with certain plugins
+* Fixed bug: No post body inside the topic due to plugin incompatibility with certain plugins
+* Fixed bug: BBCode content inside e-mail notifications
+* Fixed bug: Closing a topic didn't work as expected
+* Fixed bug: sending e-mail notifications of your own replies when subscribed on topic
+* Fixed bug: When subscribing to replies on topic, a blank screen was showing up
+* "Unmake sticky" renamed to "Unstick" (for sticky topics)
+* Fixed bug: Unstick function now works
+* Fixed bug: search system now works
+* Improved search system, now it searches in topic titles and can search in both titles and content
+* Fixed bug: Email notifications were not sent in some cases
+* New placeholder for inserting forum into WordPress page: [forumServer] can be used instead of <!--VASTHTML-->
 = 1.4 =
 * Added admin ability to close a topic
 * Added admin ability to move a topic
@@ -83,9 +93,9 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 = 1.0 =
 * Code clean up
 * Changed menu style to match Wordpress 2.7+
-* Changed all images to a more updated look 
-
+* Changed all images to a more updated look
 == Upgrade Notice ==
+= 1.5 =
+This version fixes a number of plugin incompatibility bugs. Upgrade highly recommended.
 = 1.4 =
-This version fixes a security related bug.  Upgrade immediately.
-
+This version fixes a security related bug. Upgrade immediately.
