@@ -15,7 +15,7 @@ This Wordpress plugin is a complete forum system for your wordpress blog.
 WP Forum Server :  A complete forum system for your wordpress blog. 
 The forum is a plugin, so no additional work is needed to integrate it into your site.
 
-WP Forum Server is a an advanced, stable fork of WP Forum.
+WP Forum Server is an advanced, stable fork of WP Forum.
 
 If there are any problems installing this plugin 
 please visit the site at http://vasthtml.com/js/wordpress-forum-server/
