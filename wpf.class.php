@@ -1577,7 +1577,7 @@ function forum_get_group_from_post($thread_id){
 					<tr>
 						<th $colspan ><h4 style='float:left;'>$welcome&nbsp;</h4>
 						<a style='float:right;' href='#' onclick='shrinkHeader(!current_header); return false;'>
-							<img id='upshrink'  src='$this->skin_url/images/upshrink.png' alt='".__("Show or hide header", "vasthtml")."'/></a>
+							<img id='upshrink'  src='$this->skin_url/images/upshrink.gif' alt='".__("Show or hide header", "vasthtml")."'/></a>
 						</th>
 					</tr>
 			
