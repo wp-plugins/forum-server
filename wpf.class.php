@@ -3,7 +3,7 @@
 $forum_instance = false;
 
 include("wpf_define.php");
-include("wpf_pro.php");
+//include("wpf_pro.php");
 
 require_once( 'bbcode.php' );
 //require_once( 'BBCodeParser/BBCodeParser.php' );
