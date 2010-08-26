@@ -55,12 +55,7 @@ if (file_exists($root.'/wp-load.php')) {
 			$wpdb->query($sql_post);
 		}
 		if(!$error){
-			if ($options[forum_seo_urls]) {
-				header("Location: ".html_entity_decode($vasthtml->get_forumlink($forum_id))); exit;
-			} else {
-				header("Location: ".html_entity_decode($vasthtml->get_forumlink($forum_id)."0")); exit;
-			}
-		}
+			header("Location: ".html_entity_decode($vasthtml->get_forumlink($forum_id)."0")); exit;}
 		else	
 			wp_die($msg);
 
@@ -92,11 +87,7 @@ if (file_exists($root.'/wp-load.php')) {
 			
 		if(!$error){
 			$vasthtml->notify_starter($thread, $subject, $content, $date);
-			if ($options[forum_seo_urls]) {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread))); exit;
-			} else {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;
-			}
+			header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;
 		}
 		else	
 			wp_die($msg);
@@ -122,12 +113,8 @@ if (file_exists($root.'/wp-load.php')) {
 		$wpdb->query($sql);
 		
 		if(!$error){
-			if ($options[forum_seo_urls]) {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread))); exit;
-			} else {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;
-			}
-		} else
+			header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;}
+		else	
 			wp_die($msg);
 	}
 	

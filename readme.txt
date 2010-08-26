@@ -5,14 +5,14 @@ Donate link: http://vasthtml.com/
 Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
-Tested up to: 3.0.1
-Stable tag: 1.5.2
+Tested up to: 3.0.0
+Stable tag: 1.5.1
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
 == Description ==
 
-WP Forum Server : A complete forum system for your wordpress blog. 
+WP Forum Server :  A complete forum system for your wordpress blog. 
 The forum is a plugin, so no additional work is needed to integrate it into your site.
 
 WP Forum Server is a an advanced, stable fork of WP Forum.
@@ -24,12 +24,12 @@ and download the plugin from there.
 If you want to show off your forum please 
 visit: http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
 and leave a link to your site.
-
+   
 
 == Installation ==
 
 This section describes how to install the plugin and get it working.
-
+ 
 1. Upload `forum-server` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Make a new page to place your forum into. Make sure you have it on the `HTML` editor.
@@ -51,19 +51,6 @@ and download from there.
 = Is there a gallery i can see other people using the plugin? = 
 http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0 
 
-= How do I translate interface in another language? = 
-To make a translation of any wp plugin use this plugin
-http://wordpress.org/extend/plugins/codestyling-localization/
-
-Prefix the .mo and .po files with "vasthtml-", for example: vasthtml-en_EN.mo, vasthtml-en_EN.po.
-When the .mo and .po files are ready:
-1. Copy .mo and .po files to /wp-content/plugins/forum-server/
-2. Open /wp-content/plugins/forum-server/wpf-main.php file
-3. Uncomment the following lines:
-//$plugin_dir = basename(dirname(__FILE__));
-//load_textdomain("vasthtml", ABSPATH.'wp-content/plugins/'. $plugin_dir.'/'.'vasthtml-en_EN.mo');
-(change "en_EN" to your locale descriptor.
-
 = May I recommend some new features? = 
 Yes please do. http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=20.0
 
@@ -78,10 +65,6 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
-= 1.5.2 =
-* Fixed bug: Duplicate launch of plugin on certain themes and WordPress installations
-* Fixed bug: Localization support on WordPress 3.0+
-* Fixed bug: Javascript error when using "Show or hide header" feature on certain Forum Server skins
 = 1.5.1 =
 * Fixed bug: Path problems if wordpress is in subdirectory
 = 1.5 =
