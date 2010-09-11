@@ -1,7 +1,8 @@
 <?php
 //include("wpf_define.php");
-class vasthtmladmin{
-		
+include("fs-admin_pro.php");
+class vasthtmladmin extends vasthtmladmin_pro{
+
 		var $admin_tabs = array();
 		var $cur_tab = "";
 
@@ -21,7 +22,7 @@ class vasthtmladmin{
 										"usergroups"	=> __("User Groups", "vasthtml"),
 										"about"			=> __("About", "vasthtml")
 										);
-										
+
 		if (isset($_REQUEST['vasthtml_action']) && !empty($this->admin_tabs[$_REQUEST['vasthtml_action']]))
 			$cur_tab = $_REQUEST['vasthtml_action'];
 		else
@@ -36,9 +37,9 @@ switch($cur_tab){
 				case "skins": 		$this->skins(); break;
 				case "moderators":	$this->moderators(); break;
 				case "about": 		$this->about(); break;
-				/*case "users": 		$this->users(); break;*/			
+				/*case "users": 		$this->users(); break;*/
 			}
-			
+
 		}
 		function delete_usergroups(){
 			if (isset($_POST['delete_usergroups'])){
@@ -72,9 +73,9 @@ switch($cur_tab){
 				$wpdb->query("INSERT INTO ".$table_prefix."forum_usergroups (name, description) VALUES('$name', '$desc')");
 				return __("User Group successfully added.", "vasthtml");
 			}
-			return false;		
+			return false;
 		}
-		
+
 		function add_user_togroup(){
 			global $wpdb, $table_prefix, $vasthtml;
 			if(isset($_GET['do']) && $_GET['do'] == "add_user_togroup" && !isset($_POST['add_user_togroup'])){
@@ -93,7 +94,7 @@ switch($cur_tab){
 				$group =  $_POST['usergroup'];
 				if($group == "add_user_null")
 					return __("You must choose a user group", "vasthtml");
-					
+
 				foreach($users as $user){
 					if($user){
 						trim($user);
@@ -114,16 +115,16 @@ switch($cur_tab){
 						}
 					}
 				}
-				return 
+				return
 					 __("Errors:","vasthtml")." $errors,
-					".__("Warnings:", "vasthtml")." $warnings, 
-					".__("Users added:", "vasthtml")." $added 
+					".__("Warnings:", "vasthtml")." $warnings,
+					".__("Users added:", "vasthtml")." $added
 					<br/>-------------------------------<br/> $msg";
 			}
 			return false;
 
 		}
-		
+
 		function usergroups(){
 			global $wpdb, $vasthtml, $table_prefix;
 			$usergroups = $vasthtml->get_usergroups();
@@ -134,7 +135,7 @@ switch($cur_tab){
 					echo '<div id="message" class="updated fade"><p>' . __('User Group(s) successfully deleted.', 'vasthtml') . '</p></div>';
 			if($msg = $this->add_usergroup())
 					echo "<div id='message' class='updated fade'><p>$msg</p></div>";
-					
+
 			if($msg = $this->add_user_togroup())
 					echo "<div id='message' class='updated fade'><p>$msg</p></div>";
 			if(isset($_GET['do']) && $_GET['do'] == "removemember"){
@@ -173,7 +174,7 @@ $image = WPFURL."images/user.png";
 							<td><a href='".ADMIN_BASE_URL."usergroups&do=edit_usergroup&usergroup_id=$usergroup->id'>$usergroup->name</a></td>
 							<td>$usergroup->description</td>
 							</tr>";*/
-				
+
 						$members = $vasthtml->get_members($usergroup->id);
 						if($members){
 							echo "<tr>
@@ -194,7 +195,7 @@ $image = WPFURL."images/user.png";
 							echo "<tr>
 							<td colspan='3' align='right'><a href='".ADMIN_BASE_URL."usergroups&do=add_user_togroup'>".__("Add members", "vasthtml")."</a></td>
 						</tr></table>
-						</td></tr>";	
+						</td></tr>";
 						}
 						else{
 							echo "<tr><td colspan='3'>". __("No members in this group", "vasthtml")."</tr></td>";
@@ -202,7 +203,7 @@ $image = WPFURL."images/user.png";
 
 						}
 						echo "</table><br class='clear' /><br />";
-		
+
 				}
 				echo "</form>";
 			}
@@ -210,13 +211,13 @@ $image = WPFURL."images/user.png";
 
 			echo "</div>";
 		}
-		
+
 		function activate_skin(){
 			if (isset($_GET['action']) && $_GET['action'] == "activateskin"){
 			$op = get_option('vasthtml_options');
 
 				$options = array( 'forum_posts_per_page' 		=> $op['forum_posts_per_page'],
-								'forum_threads_per_page' 		=> $op['forum_threads_per_page'], 
+								'forum_threads_per_page' 		=> $op['forum_threads_per_page'],
 								'forum_require_registration' 	=> $op['forum_require_registration'],
 								'forum_date_format' 			=> $op['forum_date_format'],
 								'forum_use_gravatar' 			=> $op['forum_use_gravatar'],
@@ -228,12 +229,12 @@ $image = WPFURL."images/user.png";
 								'forum_capcha' 					=> $op['forum_captcha'],
 								'hot_topic'						=> $op['hot_topic'],
 								'veryhot_topic'					=> $op['veryhot_topic']
-								); 
-								
+								);
+
 				update_option('vasthtml_options', $options);
 
 				return true;
-			}		
+			}
 			return false;
 		}
 		function skins(){
@@ -257,7 +258,7 @@ $image = WPFURL."images/user.png";
 
 							</tr>
 						</thead>";
-											
+
 				   while (($file = readdir($dh)) !== false) {
 						if(filetype(SKINDIR . $file) == "dir" && $file != ".." && $file != "." && substr($file, 0, 1) != "."){
 							$p = file_get_contents(SKINDIR.$file."/style.css");
@@ -318,7 +319,7 @@ $image = WPFURL."images/user.png";
        </table>
 			</div>";
 		}
-		
+
 		function get_usercount(){
 			global $wpdb, $table_prefix;
 			return $wpdb->get_var("SELECT count(*) from ".$table_prefix."users");
@@ -328,7 +329,7 @@ $image = WPFURL."images/user.png";
 			$res = $wpdb->get_results("SHOW TABLE STATUS");
 			foreach($res as $r)
 				$size += $r->Data_length + $r->index_length;
-				
+
 			return $this->formatfilesize($size);
 		}
 
@@ -345,9 +346,9 @@ $image = WPFURL."images/user.png";
 			else {
 				return round( ( $data / 1024000 ), 1 ) . " MB";
 			}
-		
+
 		}
-    
+
 		function get_version(){
 			$plugin_data = implode('', file(ABSPATH."wp-content/plugins/".WPFPLUGIN."/wpf-main.php"));
 			if (preg_match("|Version:(.*)|i", $plugin_data, $version)) {
@@ -361,7 +362,7 @@ $image = WPFURL."images/user.png";
 			global $vasthtml;
 			$op = get_option('vasthtml_options');
 			$image = WPFURL."images/chart.png";
-			echo '<div class="wrap"> 
+			echo '<div class="wrap">
 			<h2>'.__("<img src='$image'>WP Forum Server", "vasthtml").'</h2><br class="clear" />
 			<table class="widefat">
 				<thead>
@@ -398,10 +399,10 @@ $image = WPFURL."images/user.png";
 			$image = WPFURL."images/logomain.png";
 			echo '<h2>'.__("<img src='$image'>WP Forum Server &raquo;  General Options", "vasthtml").'</h2>';
 			echo '<form id="vasthtml_option_form" name="vasthtml_option_form" method="post" action="">';
-			
+
 			if (function_exists('wp_nonce_field'))
 				wp_nonce_field('vasthtml-manage_option');
-				
+
 				echo "<table class='widefat'>
     <thead>
       <tr>
@@ -416,9 +417,9 @@ $image = WPFURL."images/user.png";
 		<tr class='alternate'>
 			<td>".__("Threads per page:", "vasthtml")."</td>
 			<td><input type='text' name='forum_threads_per_page' value='".$op['forum_threads_per_page']."' /> (default = 20)</td>
-	
+
 		</tr>
-		
+
 		<tr class='alternate'>
 			<td>".__("Number of posts for hot Topic:", "vasthtml")."</td>
 			<td><input type='text' name='hot_topic' value='".$op['hot_topic']."' /> (default = 15)</td>
@@ -427,26 +428,31 @@ $image = WPFURL."images/user.png";
 			<td>".__("Number of posts for Very Hot Topic:", "vasthtml")."</td>
 			<td><input type='text' name='veryhot_topic' value='".$op['veryhot_topic']."' /> (default = 25)</td>
 		</tr>
+
+
 		
 				
+		
 		<tr class='alternate'>
 			<td>".__("Show Avatars in the forum:", "vasthtml")."</td>
 		  	<td><input type='checkbox' name='forum_use_gravatar' value='true'";
-		 if($op['forum_use_gravatar'] == 'true') 
+		 if($op['forum_use_gravatar'] == 'true')
 			echo "checked='checked'";
 		echo "/> (default = On)</td>
 		</tr>
-		
-			<tr class='alternate'>
+
+		";
+		echo $this->show_forum_seo_urls($op['forum_seo_urls']);
+		echo "<tr class='alternate'>
 				<td>".__("Registration required to post:", "vasthtml")."</td>
 			  	<td><input type='checkbox' name='forum_require_registration' value='true'";
-			 if($op['forum_require_registration'] == 'true') 
+			 if($op['forum_require_registration'] == 'true')
 				echo "checked='checked'";
 			echo "/> (default = On)</td></tr>";
-			
+
 			if (function_exists("gd_info")){
 				$gd = gd_info();
-				$status = ""; 
+				$status = "";
 				$lib = "<br /><strong>".__("Installed version:", "vasthtml")." {$gd['GD Version']}</strong>";
 			}
 			else {
@@ -456,11 +462,11 @@ $image = WPFURL."images/user.png";
 			echo "<tr class='alternate'>
 				<td>".__("Use Captcha for unregistered users:", "vasthtml")."</td>
 			  	<td><input type='checkbox' name='forum_captcha' value='true' $status";
-			 if($op['forum_captcha'] == 'true') 
+			 if($op['forum_captcha'] == 'true')
 				echo "checked='checked'";
 			echo "/> (Requires <a href='http://www.libgd.org/Main_Page'>GD</a> library) $lib</td>
 			</tr>";
-									
+
 			echo "<tr class='alternate'>
 				<td valign='top'>".__("Date format:", "vasthtml")."</td><td><input type='text' name='forum_date_format' value='".$op['forum_date_format']."'  /> <p>".__("Default date:", "vasthtml")." \"F j, Y, H:i\". <br />Check <a href='http://www.php.net'>http://www.php.net</a> for date formatting.</p></td>
 			</tr>
@@ -470,17 +476,17 @@ $image = WPFURL."images/user.png";
 			<span class='button' style='float:right'><a href='http://vasthtml.com' target='_blank'>Vast HTML</a></span>
 		</tr>
 		</table>
-		
+
 		</form>";
 
 		}
-		
+
 		function option_save(){
 			if (isset($_POST['vasthtml_option_save'])) {
 			$op = get_option('vasthtml_options');
 				global $wpdb, $table_prefix;
 				$options = array( 'forum_posts_per_page' 		=> $wpdb->escape($_POST['forum_posts_per_page']),
-								'forum_threads_per_page' 		=> $wpdb->escape($_POST['forum_threads_per_page']), 
+								'forum_threads_per_page' 		=> $wpdb->escape($_POST['forum_threads_per_page']),
 								'forum_require_registration' 	=> $_POST['forum_require_registration'],
 								'forum_date_format' 			=> $wpdb->escape($_POST['forum_date_format']),
 								'forum_use_gravatar' 			=> $_POST['forum_use_gravatar'],
@@ -491,19 +497,20 @@ $image = WPFURL."images/user.png";
 								'forum_use_bbcode' 				=> $_POST['forum_use_bbcode'],
 								'forum_captcha' 				=> $_POST['forum_captcha'],
 								'hot_topic' 					=> $_POST['hot_topic'],
-								'veryhot_topic' 				=> $_POST['veryhot_topic']
-								); 
-								
+								'veryhot_topic' 				=> $_POST['veryhot_topic'],
+								'forum_seo_urls' 				=> $_POST['forum_seo_urls']
+								);
+
 				update_option('vasthtml_options', $options);
-								
+
 				return true;
 			}
 			return false;
 
 		}
-		
+
 	function delete_forum_group(){
-		
+
 		if(isset($_POST['delete_forum_groups'])){
 		global $wpdb, $table_prefix;
 		$msg = "";
@@ -518,29 +525,29 @@ $image = WPFURL."images/user.png";
 
 			$groups = $_POST['delete_groups'];
 			$forums = $_POST['delete_forums'];
-			
+
 
 			$forum_num = count($forums);
 			$group_num = count($groups);
 
 			// Delete marked groups
 			for($i = 0; $i < $group_num; $i++){
-			
+
 				// Get all forums
 				$forums = $wpdb->get_results("select id from $table_forums where parent_id = {$groups[$i]}");
 
 				// Loop trough the forums
 				foreach($forums as $forum){
-				
+
 					// Get all threads
 					$threads = $wpdb->get_results("select id from $table_threads where parent_id = $forum->id");
-					
+
 					// Delete threads
 					$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = $forum->id");
-					
+
 					// Loop through the threads
 					foreach($threads as $thread){
-						
+
 						// Delete posts
 						$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
 					}
@@ -550,31 +557,31 @@ $image = WPFURL."images/user.png";
 				// Delete the group
 				$group_count += $wpdb->query("DELETE FROM $table_groups WHERE id = {$groups[$i]}");
 			}
-			
-			// Delete marked forums			
+
+			// Delete marked forums
 			for($i = 0; $i < $forum_num; $i++){
-			
+
 				$threads = $wpdb->get_results("select id from $table_threads where parent_id = {$forums[$i]}");
-				
+
 				foreach($threads as $thread){
 
 					$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
 				}
 				$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = {$forums[$i]}");
 
-				
+
 				$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE id = {$forums[$i]}");
 			}
 			$msg .=  __("Groups deleted:", "vasthtml")." ".$group_count."<br/>"
 					.__("Forums deleted:", "vasthtml")." ".$forum_count."<br/>"
 					.__("Threads deleted:", "vasthtml")." ".$thread_count."<br/>"
 					.__("Posts deleted:", "vasthtml")." ".$post_count."<br/>";
-		
+
 			return $msg;
 		}
 		return false;
 	}
-	
+
 	function edit_forum_group(){
 		global $vasthtml;
 		if(isset($_GET['do']) && $_GET['do'] == "editgroup"){
@@ -587,7 +594,7 @@ $image = WPFURL."images/user.png";
 	function add_group(){
 		if(isset($_POST['add_group_submit'])){
 			global $wpdb, $table_prefix;
-			
+
 			$add_group_description = $wpdb->escape($_POST['add_group_description']);
 			$add_group_name = $wpdb->escape($_POST['add_group_name']);
 
@@ -595,17 +602,17 @@ $image = WPFURL."images/user.png";
 				return __("You must enter a name", "vasthtml");
 			if($wpdb->get_var("SELECT id FROM ".$table_prefix."forum_groups WHERE name = '$add_group_name'"))
 				return __("You have choosen a name that already exists in the database, please specify another", "vasthtml");
-			
+
 			$max = $wpdb->get_var("SELECT MAX(sort) from ".$table_prefix."forum_groups") + 1;
 
-			$wpdb->query("INSERT INTO ".$table_prefix."forum_groups (name, description, sort) 
+			$wpdb->query("INSERT INTO ".$table_prefix."forum_groups (name, description, sort)
 				VALUES('$add_group_name', '$add_group_description', '$max')");
-		
+
 			return __("Category added successfully", "vasthtml");
 		}
 		return false;
 	}
-	
+
 	function add_forum(){
 		if(isset($_POST['add_forum_submit'])){
 			global $wpdb, $table_prefix;
@@ -614,18 +621,18 @@ $image = WPFURL."images/user.png";
 			$add_forum_group_id = $_POST['add_forum_group_id'];
 			if($_POST['add_forum_group_id'] == "add_forum_null")
 				return __("You must select a category", "vasthtml");
-				
+
 			if($_POST['add_forum_name'] == "")
 				return __("You must enter a name", "vasthtml");
-				
+
 			if($wpdb->get_var("select id from ".$table_prefix."forum_forums where name = '$add_forum_name' and parent_id = $add_forum_group_id"))
 				return __("You have choosen a forum name that already exists in this group, please specify another", "vasthtml");
-			
+
 			$max = $wpdb->get_var("SELECT MAX(sort) from ".$table_prefix."forum_forums WHERE parent_id = $add_forum_group_id") + 1;
 
-			$wpdb->query("INSERT INTO ".$table_prefix."forum_forums (name, description, parent_id, sort) 
+			$wpdb->query("INSERT INTO ".$table_prefix."forum_forums (name, description, parent_id, sort)
 				VALUES('$add_forum_name', '$add_forum_description', '$add_forum_group_id', '$max')");
-		
+
 				return __("Forum added successfully", "vasthtml");
 			}
 		return false;
@@ -641,30 +648,30 @@ function structure(){
 		echo "<div id='message' class='updated fade'><p>$msg</p></div>";
 	if($msg = $this->add_forum())
 		echo "<div id='message' class='updated fade'><p>$msg</p></div>";
-		
+
 	if(isset($_GET['do']) && $_GET['do'] == "addforum")
 		include('wpf-add-forum.php');
 
 	if(isset($_GET['do']) && $_GET['do'] == "addgroup")
 		include('wpf-add-group.php');
-		
+
 
 	// Check if group/forum update is nessesrary
 	$image = WPFURL."images/table.png";
 	$this->edit_forum_group();
 	echo "<div class='wrap'>";
 		echo "<h2>".__("<img src='$image'>WP Forum Server &raquo; Categories and Forums ", "vasthtml")."</h2>";
-		
-		
-	
+
+
+
 	$groups = $vasthtml->get_groups();
- 
+
  echo "<a href='".ADMIN_BASE_URL."structure&do=addgroup'> ".__("<span class='button'>add new</span>", "vasthtml")."</a>";
 
 	echo "<form method='post' name='delete_forum_groups_form' action='".ADMIN_BASE_URL."structure'>";
 
 
-				
+
 		//echo "<tr><td><a href='$edit_link'>$group->sort $group->name</a></td><td><a href='$up_link'>&#x2191;</a> | <a href='$down_link'>&#x2193;</a></td>";
 
 	foreach($groups as $group){
@@ -690,10 +697,10 @@ function structure(){
 						<td><a href='$up_link'>&#x2191;</a> | <a href='$down_link'>&#x2193;</a></td>
 						<td><strong><a href='$edit_link'>".__("Modify", "vasthtml")."</a></strong></td>
 					</tr><br />";*/
-					
-				
+
+
 		$forums = $vasthtml->get_forums($group->id);
-		
+
 		if($forums){
 			foreach($forums as $forum){
 				$up_link 	= ADMIN_BASE_URL."structure&do=forum_up&id=$forum->id";
@@ -717,20 +724,20 @@ function structure(){
 					<td colspan='3' align='right'><a href='".ADMIN_BASE_URL."structure&do=addforum&groupid=$group->id'>".__("Add forum", "vasthtml")."</a></td>
 				</tr>
 			</table><br class='clear' />";
-	
+
 	} // foreach($groups as $group)
-	
+
 
 
 	echo "</form></div>";
-	
+
 }
 	function move_up_down(){
 		if(isset($_GET['do'])){
 		global $wpdb, $table_prefix;
 			switch($_GET['do']){
-			
-/*------------------------------------------------------------------------------------------------------------------------*/				
+
+/*------------------------------------------------------------------------------------------------------------------------*/
 				case "group_down":
 					$ginfo = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_groups WHERE id = '".($_GET['id']*1)."'", ARRAY_A);
 					$above = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_groups WHERE sort < '".$ginfo['sort']."' ORDER BY sort DESC", ARRAY_A);
@@ -740,7 +747,7 @@ function structure(){
 					}
 				$msg = "Group Moved Down";
 				break;
-/*------------------------------------------------------------------------------------------------------------------------*/				
+/*------------------------------------------------------------------------------------------------------------------------*/
 				case "forum_down":
 					$ginfo = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_forums WHERE id = '".($_GET['id']*1)."'", ARRAY_A);
 					$above = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_forums WHERE parent_id = '".$ginfo['parent_id']."' && sort < '".$ginfo['sort']."' ORDER BY sort DESC", ARRAY_A);
@@ -750,7 +757,7 @@ function structure(){
 					}
 					$msg = "Forum Moved Down";
 					break;
-/*------------------------------------------------------------------------------------------------------------------------*/						
+/*------------------------------------------------------------------------------------------------------------------------*/
 				case "group_up":
 					$ginfo = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_groups WHERE id = '".($_GET['id']*1)."'", ARRAY_A);
 					$above = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_groups WHERE sort > '".$ginfo['sort']."' ORDER BY sort ASC", ARRAY_A);
@@ -760,7 +767,7 @@ function structure(){
 					}
 					$msg = "Group Moved Up";
 					break;
-/*------------------------------------------------------------------------------------------------------------------------*/				
+/*------------------------------------------------------------------------------------------------------------------------*/
 				case "forum_up":
 					$ginfo = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_forums WHERE id = '".($_GET['id']*1)."'", ARRAY_A);
 					$above = $wpdb->get_row("SELECT * FROM {$table_prefix}forum_forums WHERE parent_id = '".$ginfo['parent_id']."' && sort > '".$ginfo['sort']."' ORDER BY sort ASC", ARRAY_A);
@@ -770,7 +777,7 @@ function structure(){
 					}
 					$msg = "Forum Moved Up";
 					break;
-/*------------------------------------------------------------------------------------------------------------------------*/				
+/*------------------------------------------------------------------------------------------------------------------------*/
 				}
 				return $msg;
 
@@ -782,20 +789,20 @@ function structure(){
 			$new_groups = maybe_serialize($new_groups);
 			$wpdb->query("UPDATE ".$table_prefix."forum_groups SET usergroups = '$new_groups' WHERE id = $group_id");
 		}
-		
+
 		function get_usersgroups_with_access_to_group($groupid){
 			global $wpdb, $table_prefix;
 			$string = $wpdb->get_var("select usergroups from ".$table_prefix."forum_groups where id = $groupid");
 			return  maybe_unserialize( $string );
 
 		}
-		
+
 		function edit_moderator(){
 			if(isset($_POST['update_mod'])){
-				
+
 				$forums = $_POST['mod_forum_id'];
 				$forums = maybe_unserialize($forums);
-					
+
 				$global = $_POST['mod_global'];
 				$user_id = $_POST['update_mod_user_id'];
 				if($global){
@@ -832,7 +839,7 @@ function structure(){
 				$global = $_POST['mod_global'];
 				if($user_id == "add_mod_null")
 					return __("You must select a user", "vasthtml");
-					
+
 				if($global){
 					update_usermeta($user_id, "wpf_moderator", "mod_global");
 					return __("Global Moderator added successfully", "vasthtml");
@@ -841,7 +848,7 @@ function structure(){
 				return __("Moderator added successfully", "vasthtml");
 			}
 			return false;
-			
+
 		}
 		function moderators(){
 			global $wpdb, $table_prefix, $vasthtml;
@@ -849,19 +856,19 @@ function structure(){
 
 			$forums = $vasthtml->get_forums();
 			$groups = $vasthtml->get_groups();
-			
+
 			if($msg = $this->edit_moderator())
 				echo "<div id='message' class='updated fade'><p>$msg</p></div>";
-				
+
 			if($msg = $this->add_moderator())
 				echo "<div id='message' class='updated fade'><p>$msg</p></div>";
 			echo "<div class='wrap'>";
-			
+
 			if(isset($_GET['do']) && $_GET['do'] == "add_moderator"){
 				include('wpf-moderator.php');
 			}
 			$mods = $vasthtml->get_moderators();
-             $image = WPFURL."images/user.png"; 
+             $image = WPFURL."images/user.png";
 			echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage Moderators", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."moderators&do=add_moderator'>(".__("add new", "vasthtml").")</a></h2>";
 
 			if($mods){
@@ -895,36 +902,36 @@ function structure(){
 										$checked = "checked='checked'";
 									else
 										$checked = "";
-										
+
 									echo "<p class='wpf-indent'><input type='checkbox' onclick='uncheckglobal(this, this.form);' $checked name='mod_forum_id[]' id='mod_forum_id' value='$forum->id' /> $forum->name</p>
 											<input type='hidden' name='update_mod_user_id' value='$mod->user_id' />";
 							}
-							
+
 						}
 						echo "</td>
 							</tr>
 							</form></table><br class='clear' />";
-					}				
+					}
 			}
 			else
 				echo "<p>".__("No moderators yet", "vasthtml")."</p>";
 			echo "</div>";
 
 		}
-		
-		
+
+
 		function convert_moderators(){
 			global $wpdb, $table_prefix;
 			if(!get_option('wpf_mod_option_vers')){
-				$mods = $wpdb->get_results("SELECT user_id, user_login, meta_value FROM $wpdb->usermeta 
+				$mods = $wpdb->get_results("SELECT user_id, user_login, meta_value FROM $wpdb->usermeta
 					INNER JOIN $wpdb->users ON $wpdb->usermeta.user_id=$wpdb->users.ID WHERE meta_key = 'moderator' AND meta_value <> ''");
 				echo "<pre>";
 				print_r($mods);
 				echo "</pre>";
-				
+
 				foreach($mods as $mod){
 					$string = explode(",", substr_replace($mod->meta_value, "", 0, 1));
-				
+
 					/*echo "<pre>";
 					print_r($string);
 					echo "</pre>";*/
@@ -933,21 +940,21 @@ function structure(){
 				}
 			}
 			else echo "Moderators updated";
-		
+
 		}
-		
-		
+
+
 		function pre($array){
 			echo "<pre>";
 			print_r($array);
 			echo "</pre";
 		}
 
-		
-		
-		
-		
-		
+
+
+
+
+
 }// End class
 
 // Startup the stuff

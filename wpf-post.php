@@ -1,6 +1,10 @@
 <?php
 $quote = "";
-global $wpdb, $vasthtml;
+global $wpdb, $vasthtml, $forum_instance;
+
+if (!empty($forum_instance) && $forum_instance === true) {
+	return false;
+}
 
 if($user_ID || $this->allow_unreg()){
 

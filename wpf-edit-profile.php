@@ -1,5 +1,9 @@
 <?php
-global $user_ID, $user_level;
+global $user_ID, $user_level, $forum_instance;
+
+if (!empty($forum_instance) && $forum_instance === true) {
+	return false;
+}
 
 if(isset($_POST['edit_user_submit'])){
 

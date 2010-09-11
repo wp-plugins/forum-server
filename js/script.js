@@ -60,7 +60,12 @@ function shrinkHeader(mode){
 	document.getElementById("upshrinkHeader").style.display = mode ? "none" : "";
 	document.getElementById("upshrinkHeader2").style.display = mode ? "none" : "";
 	
-	document.getElementById("upshrink").src = skinurl+"/images" + (mode ? "/upshrink2.gif" : "/upshrink.gif");
+//	document.getElementById("upshrink").src = skinurl+"/images" + (mode ? "/upshrink2.gif" : "/upshrink.gif");
+	if (mode) {
+		document.getElementById("upshrink").setAttribute("class", 'upshrink2');
+	} else {
+		document.getElementById("upshrink").setAttribute("class", 'upshrink');
+	}
 
 	if(mode == true){
 		val = "yes";

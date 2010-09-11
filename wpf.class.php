@@ -433,8 +433,10 @@ class vasthtml extends vasthtml_pro{
 	}
 
 	function go($content){
+
 		$start_time = microtime(true);
-		global $user_ID;
+		global $user_ID, $forum_instance;
+
 		if(!preg_match('|<!--VASTHTML-->|', $content) && !preg_match('|\[forumServer\]|', $content))
 			return $content;
 
@@ -532,19 +534,20 @@ class vasthtml extends vasthtml_pro{
 
 		$end_time = microtime(true);
 		$load =  __("Page loaded in:", "vasthtml")." ".round($end_time-$start_time, 3)." ".__("seconds.", "vasthtml")."";
-
-		$this->o .= "<div id='wpf-info'><small>
-			".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br />
-			".__("Version:", "vasthtml").$this->get_version().";
-			$load</small>
-		</div>";
-
+		if ($forum_instance === false) {
+			$this->o .= "<div id='wpf-info'><small>
+				".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br />
+				".__("Version:", "vasthtml").$this->get_version().";
+				$load</small>
+			</div>";
+		}
+		$forum_instance = true;
 		$result = '';
 		if(preg_match('|\[forumServer\]|', $content) ) {
-			return preg_replace('|\[forumServer\]|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+			return preg_replace('|\[forumServer\]|', "<div id='wpf-wrapper'>".$this->o."</div>", $content, 1);
 
 		} else {
-			return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+			return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content, 1);
 		}
 
 	}
@@ -650,12 +653,12 @@ class vasthtml extends vasthtml_pro{
 							$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
 							$lv = $this->last_visit();
 							if($lp > $lv)
-								$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
+								$image = "<span class='new'>New posts since last visit</span>";
 						}
 					}
 
 
-					$sticky_img = "<img alt='' src='$this->skin_url/images/topic/normal_post_sticky.gif'/>";
+					$sticky_img = "<span class='post_sticky'></span>";
 					$out .= "<tr>
 									<td class='forumIcon' align='center'>$sticky_img</td>
 									<td class='wpf-alt sticky'><span class='topicTitle'><a href='"
@@ -684,7 +687,7 @@ class vasthtml extends vasthtml_pro{
 							$lp = strtotime($this->last_poster_in_thread($thread->id)); // date
 							$lv = $this->last_visit();
 							if($lp > $lv)
-								$image = "<img src='$this->skin_url/images/new.gif' alt='".__("New posts since last visit", "vasthtml")."'>";
+								$image = "<span class='new'>New posts since last visit</span>";
 						}
 					}
 
@@ -722,7 +725,7 @@ class vasthtml extends vasthtml_pro{
 
 			}
 			$this->o .= $out;
-			$forum_instance = true;
+
 			$this->footer();
 		}
 	}
@@ -766,10 +769,11 @@ class vasthtml extends vasthtml_pro{
 			}
 
 			$wpdb->query("UPDATE $this->t_threads SET views = views+1 WHERE id = $thread_id");
+
 			if($this->is_sticky())
-				$image = "normal_post_sticky.gif";
+				$sticky_class = "post_sticky";
 			else
-				$image = "normal_post.gif";
+				$sticky_class = "normal_post";
 
 			if(!$this->have_access($this->current_group)){
 				@ob_end_clean();
@@ -788,7 +792,7 @@ class vasthtml extends vasthtml_pro{
 			$out .= "<div class='wpf'>
 						<table class='wpf-table' width='100%'>
 						<tr>
-							<th width='12%'><img src='$this->skin_url/images/topic/$image' align='left'/> ".__("Author", "vasthtml")."</th>
+							<th width='12%'><span class='.$sticky_class.'></span></th>
 							<th>".__("Topic: ", "vasthtml").$this->get_subject($thread_id)."</th>
 						</tr>
 					</table>";
@@ -837,7 +841,7 @@ class vasthtml extends vasthtml_pro{
 					</table>";
 
 			$this->o .= $out;
-			$forum_instance = true;
+
 			$this->footer();
 		}
 	}
@@ -902,7 +906,10 @@ class vasthtml extends vasthtml_pro{
 		return $wpdb->get_var("select count(*) from $this->t_posts where author_id = $id");
 	}
 	function mydefault(){
-		global $user_ID;
+		global $user_ID, $forum_instance;
+		if (!empty($forum_instance) && $forum_instance === true) {
+			return $content;
+		}
 
 //<a name='$g->id' href='http://mac/smf/index.php?action=collapse;c=1;sa=collapse;#1'>General Category</a>"
 
@@ -931,14 +938,19 @@ class vasthtml extends vasthtml_pro{
 							$lp = strtotime($lpif); // date
 							$lv = $this->last_visit();
 
-						if($lv < $lp)
-							$image = "on.gif";
-						else
-							$image = "off.gif";
+							if($lv < $lp) {
+								$forum_class = "forum_on";
+							} else {
+								$forum_class = "forum_off";
+							}
+						} else {
+							$forum_class = "forum_off";
 						}
+					} else {
+						$forum_class = "forum_off";
 					}
 					$this->o .= "
-							<td class='wpf-alt forumIcon' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
+							<td class='wpf-alt forumIcon' width='15%' align='center'><span class='{$forum_class}'></span></td>
 							<td valign='top'><strong><a href='".$this->get_forumlink($f->id)."'>"
 								.$this->output_filter($f->name)."</a></strong><br />"
 								.$this->output_filter($f->description);
@@ -959,9 +971,10 @@ class vasthtml extends vasthtml_pro{
 		}
 		$this->o .= "<table>
 					<tr>
-						<td><small><img alt='' align='top' src='$this->skin_url/images/new_some.gif' /> ".__("New posts", "vasthtml")." <img alt='' align='top' src='$this->skin_url/images/new_none.gif' /> ".__("No new posts", "vasthtml")."</small></td>
+						<td class='legend_width'><small><span class='new_some'></span> ".__("New posts", "vasthtml")."</small></td> <td><small><span class='new_none'></span> ".__("No new posts", "vasthtml")."</small></td>
 					</tr>
 				</table><br class='clear'/>";
+		$forum_instance = true;
 		$this->footer();
 
 	}
@@ -995,14 +1008,19 @@ class vasthtml extends vasthtml_pro{
 							$lp = strtotime($lpif); // date
 							$lv = $this->last_visit();
 
-						if($lv < $lp)
-							$image = "on.gif";
-						else
-							$image = "off.gif";
+							if($lv < $lp) {
+								$forum_class = "forum_on";
+							} else {
+								$forum_class = "forum_off";
+							}
+						} else {
+							$forum_class = "forum_off";
 						}
+					} else {
+						$forum_class = "forum_off";
 					}
 					$this->o .= "
-							<td class='wpf-alt forumIcon' width='6%' align='center'><img alt='' src='$this->skin_url/images/$image' /></td>
+							<td class='wpf-alt forumIcon' width='15%' align='center'><span class='{$forum_class}'></span></td>
 							<td valign='top'><strong><a href='".$this->get_forumlink($f->id)."'>"
 								.$this->output_filter($f->name)."</a></strong><br />"
 								.$this->output_filter($f->description);
@@ -1023,7 +1041,7 @@ class vasthtml extends vasthtml_pro{
 		}
 		$this->o .= "<table>
 					<tr>
-						<td><small><img alt='' align='top' src='$this->skin_url/images/new_some.gif' /> ".__("New posts", "vasthtml")." <img alt='' align='top' src='$this->skin_url/images/new_none.gif' /> ".__("No new posts", "vasthtml")."</small></td>
+						<td class='legend_width'><small><span class='new_some'></span> ".__("New posts", "vasthtml")."</small></td> <td><small><span class='new_none'></span> ".__("No new posts", "vasthtml")."</small></td>
 					</tr>
 				</table><br class='clear'/>";
 		$this->footer();
@@ -1036,7 +1054,12 @@ class vasthtml extends vasthtml_pro{
 	}
 	function input_filter($string){
 		global $wpdb;
-		return strip_tags($wpdb->escape($string));
+		$obj_pattern = '/^<object.*/';
+		if (preg_match($obj_pattern, $string) === 0) {
+			return strip_tags($wpdb->escape($string));
+		} else {
+			return $wpdb->escape($string);
+		}
 	}
 	function last_posterid($forum){
 		global $wpdb;
@@ -1291,7 +1314,7 @@ class vasthtml extends vasthtml_pro{
 			  description varchar(255) NOT NULL default '',
 			  views int(11) NOT NULL default '0',
 			  PRIMARY KEY  (id)
-			);";
+			)DEFAULT CHARACTER SET = utf8;";
 
 			$sql2 = "
 			CREATE TABLE ". $table_groups." (
@@ -1300,7 +1323,7 @@ class vasthtml extends vasthtml_pro{
 			  `description` varchar(255) default '',
 			  `usergroups` varchar(255) default '',
 			  PRIMARY KEY  (id)
-			);";
+			)DEFAULT CHARACTER SET = utf8;";
 
 			$sql3 = "
 			CREATE TABLE ". $table_posts." (
@@ -1313,7 +1336,7 @@ class vasthtml extends vasthtml_pro{
 			  views int(11) NOT NULL default '0',
 			  PRIMARY KEY  (id),
 			  FULLTEXT(`text`)
-			);";
+			)DEFAULT CHARACTER SET = utf8;";
 
 
 			$sql4 = "
@@ -1328,7 +1351,7 @@ class vasthtml extends vasthtml_pro{
 			  PRIMARY KEY  (id),
 			  FULLTEXT(`subject`)
 
-			);";
+			)DEFAULT CHARACTER SET = utf8;";
 
 			// 1.7.7
 			/*$sql5 = "
@@ -1345,7 +1368,7 @@ class vasthtml extends vasthtml_pro{
 			  `user_id` int(11) NOT NULL,
 			  `group` varchar(255) NOT NULL,
 			  PRIMARY KEY  (`id`)
-			);";
+			)DEFAULT CHARACTER SET = utf8;";
 
 			$sql7 =
 				"CREATE TABLE ". $table_usergroups." (
@@ -1354,7 +1377,7 @@ class vasthtml extends vasthtml_pro{
 				  `description` varchar(255) default NULL,
 				  `leaders` varchar(255) default NULL,
 				  PRIMARY KEY  (`id`)
-				);";
+				)DEFAULT CHARACTER SET = utf8;";
 
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
@@ -1762,7 +1785,7 @@ function forum_get_group_from_post($thread_id){
 					<tr>
 						<th $colspan ><h4 style='float:left;'>$welcome&nbsp;</h4>
 						<a style='float:right;' href='#' onclick='shrinkHeader(!current_header); return false;'>
-							<img id='upshrink'  src='$this->skin_url/images/upshrink.png' alt='".__("Show or hide header", "vasthtml")."'/></a>
+							<span id='upshrink'></span></a>
 						</th>
 					</tr>
 
@@ -2044,16 +2067,16 @@ function forum_get_group_from_post($thread_id){
 	function form_buttons(){
 
 		$button = '
-	<a title="'.__("Bold", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[b]", "[/b]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/b.png" /></a>
-	<a title="'.__("Italic", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[i]", "[/i]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/i.png" /></a>
-	<a title="'.__("Underline", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[u]", "[/u]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/u.png" /></a>
-	<a title="'.__("Code", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[code]", "[/code]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/code.png" /></a>
-	<a title="'.__("Quote", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[quote]", "[/quote]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/quote.png" /></a>
-	<a title="'.__("List", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[list]", "[/list]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/list.png" /></a>
-	<a title="'.__("List item", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[*]", "", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/li.png" /></a>
-	<a title="'.__("Link", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[url]", "[/url]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/url.png" /></a>
-	<a title="'.__("Image", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[img]", "[/img]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/img.png" /></a>
-	<a title="'.__("Email", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[email]", "[/email]", document.forms.addform.message); return false;\'><img src="'.$this->skin_url.'/images/bbc/email.png" /></a>';
+	<a title="'.__("Bold", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[b]", "[/b]", document.forms.addform.message); return false;\'><span class="b"></span></a>
+	<a title="'.__("Italic", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[i]", "[/i]", document.forms.addform.message); return false;\'><span class="i"></span></a>
+	<a title="'.__("Underline", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[u]", "[/u]", document.forms.addform.message); return false;\'><span class="u"></span></a>
+	<a title="'.__("Code", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[code]", "[/code]", document.forms.addform.message); return false;\'><span class="code"></span></a>
+	<a title="'.__("Quote", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[quote]", "[/quote]", document.forms.addform.message); return false;\'><span class="quote_form"></span></a>
+	<a title="'.__("List", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[list]", "[/list]", document.forms.addform.message); return false;\'><span class="list"></span></a>
+	<a title="'.__("List item", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[*]", "", document.forms.addform.message); return false;\'><span class="li"></span></a>
+	<a title="'.__("Link", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[url]", "[/url]", document.forms.addform.message); return false;\'><span class="url"></span></a>
+	<a title="'.__("Image", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[img]", "[/img]", document.forms.addform.message); return false;\'><span class="img"></span></a>
+	<a title="'.__("Email", "vasthtml").'" href="javascript:void(0);" onclick=\'surroundText("[email]", "[/email]", document.forms.addform.message); return false;\'><span class="email"></span></a>';
 
 		return $button;
 	}
@@ -2070,7 +2093,7 @@ function forum_get_group_from_post($thread_id){
 								<tr>
 								</tr>
 								<tr>
-									<td width='3%' class='forumIcon' align='center'><img alt='' src='$this->skin_url/images/icons/info.gif' /></td>
+									<td width='3%' class='forumIcon' align='center'><span class='info'></span></td>
 									<td>
 										".$this->num_posts_total()." ".__("Posts", "vasthtml")." ".__("in", "vasthtml")." ".$this->num_threads_total()." ".__("Topics ".__("Made by", "vasthtml")."", "vasthtml")." ".count($this->get_users())." ".__("Members", "vasthtml").". ".__("Latest Member:", "vasthtml")." ".$this->profile_link($this->latest_member())."
 										<br />".$this->get_lastpost_all()."
@@ -2095,7 +2118,11 @@ function forum_get_group_from_post($thread_id){
 
 	function show_new(){
 	$this->current_view = NEWTOPICS;
-		global $wpdb;
+		global $wpdb, $forum_instance;
+
+		if (!empty($forum_instance) && $forum_instance === true) {
+			return false;
+		}
 		$this->header();
 		$lastvisit = @date("Y-m-d H:i:s", $this->last_visit());
 
@@ -2144,7 +2171,11 @@ function forum_get_group_from_post($thread_id){
 		return $wpdb->get_var("SELECT count(author_id) FROM $this->t_posts WHERE author_id = $user");
 	}
 	function view_profile(){
-		global $wpdb, $user_ID, $user_level;
+		global $wpdb, $user_ID, $user_level, $forum_instance;
+
+		if (!empty($forum_instance) && $forum_instance === true) {
+			return false;
+		}
 		$this->current_view = PROFILE;
 		$user_id = $_GET['id'];
 		$user = get_userdata($user_id);
@@ -2209,7 +2240,11 @@ function forum_get_group_from_post($thread_id){
 	}
 
 	function search_results(){
-		global $wpdb;
+		global $wpdb, $forum_instance;
+
+		if (!empty($forum_instance) && $forum_instance === true) {
+			return false;
+		}
 		$this->current_view = SEARCH;
 		$this->header();
 
@@ -2239,7 +2274,7 @@ function forum_get_group_from_post($thread_id){
 						<tr>
 							<td colspan='2'>
 								<div style='padding:10px;' >
-									 <a href='javascript:void(0);' onclick='expandCollapseBoards(); return false;'><img alt='' src='$this->skin_url/images/upshrink2.png' id='search_coll'/><b> ".__("Choose a forum to search in, or search all", "vasthtml")."</b></a><br />";
+									 <a href='javascript:void(0);' onclick='expandCollapseBoards(); return false;'><span class='upshrink2'></span>'<b> ".__("Choose a forum to search in, or search all", "vasthtml")."</b></a><br />";
 								$o.= "<table cellspacing='0' cellpadding='0' width='100%' id='searchBoardsExpand' style='display:none'>";
 									$i = 0;
 
@@ -2412,13 +2447,13 @@ function forum_get_group_from_post($thread_id){
 
 		$post_count = $this->num_posts($thread);
 		if($post_count <= $this->opt['hot_topic']){
-			return "<img src='$this->skin_url/images/topic/normal_post.gif' alt='".__("Normal topic", "vasthtml")."' title='".__("Normal topic", "vasthtml")."'>";
+			return "<span class='normal_post'></span>";
 		}
 		if($post_count > $this->opt['veryhot_topic']){
-			return "<img src='$this->skin_url/images/topic/my_hot_post.gif' alt='".__("Hot topic", "vasthtml")."' title='".__("Hot topic", "vasthtml")."'>";
+			return "<span class='my_hot_post'>/span>";
 		}
 		if($post_count > $this->opt['hot_topic']){
-			return "<img src='$this->skin_url/images/topic/hot_post.gif' alt='".__("Very Hot topic", "vasthtml")."' title='".__("Very Hot topic", "vasthtml")."'>";
+			return "<span class='hot_post'></span>";
 		}
 
 	}
