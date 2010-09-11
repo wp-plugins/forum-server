@@ -4,7 +4,7 @@
 	Plugin Author: VastHTML
 	Author URI: http://lucidcrew.com/
     Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
-	Version: 1.6
+	Version: 1.6.1
 */
 
 /*

@@ -10,7 +10,7 @@ require_once( 'bbcode.php' );
 @ob_start();
 
 if(!class_exists('vasthtml')){
-class vasthtml extends vasthtml_pro{
+class vasthtml{
 
 	function vasthtml(){
 

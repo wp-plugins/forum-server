@@ -6,7 +6,7 @@ Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.0.1
-Stable tag: 1.6
+Stable tag: 1.6.1
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -78,6 +78,8 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.1 =
+removed invalid reference to future pro version
 = 1.6 =
 * Images and icons structure reworked: CSS and CSS sprites are used instead of IMG tags and separate images for icons.
 The following skins have been modified to be compatible with the new structure: BBPress for WP Forum Server, Smooth Exclusive, WP-Forum 2.0, Exclusive.
