@@ -1,7 +1,7 @@
 <?php
 //include("wpf_define.php");
 include("fs-admin_pro.php");
-class vasthtmladmin extends vasthtmladmin_pro{
+class vasthtmladmin {
 
 		var $admin_tabs = array();
 		var $cur_tab = "";
@@ -442,7 +442,7 @@ $image = WPFURL."images/user.png";
 		</tr>
 
 		";
-		echo $this->show_forum_seo_urls($op['forum_seo_urls']);
+		//echo $this->show_forum_seo_urls($op['forum_seo_urls']);
 		echo "<tr class='alternate'>
 				<td>".__("Registration required to post:", "vasthtml")."</td>
 			  	<td><input type='checkbox' name='forum_require_registration' value='true'";
