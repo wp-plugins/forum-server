@@ -6,7 +6,7 @@ Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.0.1
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -78,15 +78,15 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
-= 1.6.1 =
-removed invalid reference to future pro version
+= 1.6.2 =
+* Fixed bug: Incorrect formatting in replies subject for topics and posts containing apostrophes
+* Fixed bug: Disallow ability to modify guest posts by other guests
+* Fixed bug: Fix the topic links in the rss feed and email-notifications
+* Added line breaks in post/answer body for better text formatting
 = 1.6 =
-* Images and icons structure reworked: CSS and CSS sprites are used instead of IMG tags and separate images for icons.
-The following skins have been modified to be compatible with the new structure: BBPress for WP Forum Server, Smooth Exclusive, WP-Forum 2.0, Exclusive.
-Important! If you are using a customized WP Forum Server skin, you may need to make changes to it for icons to display correctly. Please use one of default skins as a sample.
-More details on CSS Sprites: http://www.alistapart.com/articles/sprites
-* Fixed bug: Duplicate launch of WP Forum Server when sfc-like plugin is used
-* Fixed bug: Problem with Youtube video insertion (allows html embed object) 
+* Fixed bug: Duplicate launch of plugin with sfc-like plugin
+* Fixed bug: Fix youtube video insertion (allow html embed object)
+* Was added support SEO-frendly URLs
 = 1.5.2 =
 * Fixed bug: Duplicate launch of plugin on certain themes and WordPress installations
 * Fixed bug: Localization support on WordPress 3.0+

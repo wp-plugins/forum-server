@@ -52,10 +52,10 @@ if (file_exists($root.'/wp-load.php')) {
 		echo "<item>\n
 			<title>" . htmlspecialchars($title) . "</title>\n
 			<description>".htmlspecialchars($vasthtml->output_filter($post->text, ENT_NOQUOTES))."</description>\n
-			<link>".htmlspecialchars($link)."</link>\n
+			<link>".htmlspecialchars_decode($link)."</link>\n
 			<author>feeds@r.us</author>\n
 			<pubDate>".date("r", strtotime($post->date))."</pubDate>\n
-			<guid>".htmlspecialchars($link."&guid=$post->id")."</guid>
+			<guid>".htmlspecialchars_decode($link."&guid=$post->id")."</guid>
 			</item>\n\n";
 		}
 		?>

@@ -22,6 +22,7 @@ if(($_GET['vasthtmlaction'] == "postreply")){
 	$thread = $this->check_parms($_GET['thread']);
 		$out .= $this->header();
 
+	$subj = htmlentities($this->get_subject($thread), $quote_style = ENT_QUOTES);
 	$out .= "<form action='".WPFURL."wpf-insert.php' name='addform' method='post'>";
 	$out .= "<table class='wpf-table' width='100%'>
 			<tr>
@@ -29,7 +30,7 @@ if(($_GET['vasthtmlaction'] == "postreply")){
 			</tr>
 			<tr>	
 				<td>".__("Subject:", "vasthtml")."</tf>
-				<td><input type='text' name='add_post_subject' value='Re: ".$this->get_subject($thread)."'/></td>
+				<td><input type='text' name='add_post_subject' value='Re: ".$subj."'/></td>
 			</tr>
 			<tr>	
 				<td valign='top'>".__("Message:", "vasthtml")."</td>
@@ -65,7 +66,7 @@ if(($_GET['vasthtmlaction'] == "editpost")){
 		$out .= $this->header();
 
 	$post = $wpdb->get_row("SELECT * FROM $vasthtml->t_posts WHERE id = $id");
-	
+	$subj = htmlentities($post->subject, $quote_style = ENT_QUOTES);
 	$out .= "<form action='".WPFURL."wpf-insert.php' name='addform' method='post'>";
 	$out .= "<table class='wpf-table' width='100%'>
 			<tr>
@@ -73,7 +74,7 @@ if(($_GET['vasthtmlaction'] == "editpost")){
 			</tr>
 			<tr>	
 				<td>".__("Subject:", "vasthtml")."</tf>
-				<td><input type='text' name='edit_post_subject' value='".stripslashes($post->subject)."'/></td>
+				<td><input type='text' name='edit_post_subject' value='".stripslashes($subj)."'/></td>
 			</tr>
 			<tr>	
 				<td valign='top'>".__("Message:", "vasthtml")."</td>

@@ -13,7 +13,7 @@ if (file_exists($root.'/wp-load.php')) {
 	}
 	$vasthtml->setup_linksdk($_POST['add_topic_plink']);
 	$options = get_option("vasthtml_options");
-	
+
 	if($options['forum_captcha'] == true && !$user_ID){
    		if(($_SESSION['security_code'] == $_POST['security_code']) && (!empty($_SESSION['security_code'])) ) {
     	  unset($_SESSION['security_code']);
@@ -55,7 +55,7 @@ if (file_exists($root.'/wp-load.php')) {
 			$wpdb->query($sql_post);
 		}
 		if(!$error){
-			if ($options[forum_seo_urls]) {
+			if ($options['forum_seo_urls']) {
 				header("Location: ".html_entity_decode($vasthtml->get_forumlink($forum_id))); exit;
 			} else {
 				header("Location: ".html_entity_decode($vasthtml->get_forumlink($forum_id)."0")); exit;

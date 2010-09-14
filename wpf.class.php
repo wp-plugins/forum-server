@@ -20,9 +20,9 @@ class vasthtml extends vasthtml_pro{
 		add_action("plugins_loaded", array(&$this, "wpf_load_widget"));
 		add_action("wp_footer", array(&$this, "wpf_footer"));
 
-		add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
-		add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
-		add_filter("init", array(&$this, "do_flush_rules"));
+//		add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
+//		add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
+//		add_filter("init", array(&$this, "do_flush_rules"));
 
 		$this->init();
 
@@ -814,6 +814,8 @@ class vasthtml extends vasthtml_pro{
 											$out .= $this->get_avatar($post->author_id);
 									}
 
+							$txt = apply_filters('comment_text', $this->output_filter($post->text));
+							$txt = preg_replace("/<\/p>/", "</p><br \/>", $txt);
 							$out .= "</div></td>
 
 							<td valign='top'>
@@ -822,7 +824,7 @@ class vasthtml extends vasthtml_pro{
 										<td class='wpf-meta' valign='top'>".$this->get_postmeta($post->id, $post->author_id)."</td>
 									</tr>
 									<tr>
-										<td valign='top' colspan='2' class='topic_text'>".apply_filters('comment_text', $this->output_filter($post->text))."</td>
+										<td valign='top' colspan='2' class='topic_text'>".$txt."</td>
 									</tr>";
 									if($user->description){
 										$out .= "<tr><td class='user_desc'><small>".apply_filters('comment_text', $this->output_filter($user->description))."</small></td></tr>";
@@ -854,43 +856,24 @@ class vasthtml extends vasthtml_pro{
 				<tr>
 					<td>$image <strong>".$this->get_postname($post_id)."</strong><br /><small><strong>on: </strong>".$this->get_postdate($post_id)."</small></td>";
 
-					if(is_user_logged_in())
+					if(is_user_logged_in()) {
 						$o .= "<td nowrap='nowrap' width='10%'><span class='quote'></span><a href='$this->post_reply_link&amp;quote=$post_id.$this->curr_page'> ".__("Quote", "vasthtml")."</a></td>";
 
-					if($this->is_moderator($user_ID, $this->current_forum) || $user_ID == $author_id) {
-						if ($this->opt[forum_seo_urls]) {
-						$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->thread_link.$this->current_thread."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
-								<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
-						} else {
-						$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->get_threadlink($this->current_thread)."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
-								<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
+						if ($this->is_moderator($user_ID, $this->current_forum) || $user_ID == $author_id) {
+							if ($this->opt[forum_seo_urls]) {
+							$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->thread_link.$this->current_thread."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
+									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
+							} else {
+							$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->get_threadlink($this->current_thread)."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
+									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
+							}
 						}
-
 					}
 					$o .= "</tr>
 						</table>";
 		return $o;
 	}
 
-/* 	function get_postmeta($post_id, $author_id){
-	global $user_ID;
-		$image = "<span class='xx'></span>";
-		$o = "<table width='100% cellspacing='0' cellpadding='0' style='margin:0; padding:0; border-collapse:collapse:' border='0'>
-				<tr>
-					<td>$image <strong>".$this->get_postname($post_id)."</strong><br /><small><strong>on: </strong>".$this->get_postdate($post_id)."</small></td>";
-
-					if(is_user_logged_in())
-						 $o .= "<td nowrap='nowrap' width='10%'><span class='quote'></span><a href='$this->post_reply_link&amp;quote=$post_id.$this->curr_page'> ".__("Quote", "vasthtml")."</a></td>";
-
-					if($this->is_moderator($user_ID, $this->current_forum) || $user_ID == $author_id)
-						 $o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->get_threadlink($this->current_thread)."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
-								<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
-						$o .= "</tr>
-								</table>";
-
-		return $o;
-	}
-*/
 	function get_postdate($post){
 		global $wpdb;
 		return $this->format_date($wpdb->get_var("select `date` from $this->t_posts where id = $post"));
@@ -1131,6 +1114,7 @@ class vasthtml extends vasthtml_pro{
 			return true;
 
 			foreach($user_groups as $user_group){
+
 	 			if($this->is_user_ingroup($user_ID, $user_group))
 	 				return true;
 			}
@@ -1336,7 +1320,7 @@ class vasthtml extends vasthtml_pro{
 			  views int(11) NOT NULL default '0',
 			  PRIMARY KEY  (id),
 			  FULLTEXT(`text`)
-			)DEFAULT CHARACTER SET = utf8;";
+			) ENGINE=MYISAM DEFAULT CHARACTER SET = utf8;";
 
 
 			$sql4 = "
@@ -1351,7 +1335,7 @@ class vasthtml extends vasthtml_pro{
 			  PRIMARY KEY  (id),
 			  FULLTEXT(`subject`)
 
-			)DEFAULT CHARACTER SET = utf8;";
+			) ENGINE=MYISAM DEFAULT CHARACTER SET = utf8;";
 
 			// 1.7.7
 			/*$sql5 = "
@@ -2478,9 +2462,9 @@ function forum_get_group_from_post($thread_id){
 			$subject = __("New reply on topic:", "vasthtml")." '$thread_subject'.";
 			$meta = __("Posted on: ", "vasthtml")." ".$this->format_date($date);
 			if ($this->opt['forum_seo_urls']) {
-				$message = wordwrap("New reply on topic:\"$thread_subject\"\n\n".$this->get_threadlink($thread)."\n\n$meta", 70);
+				$message = wordwrap("New reply on topic:\"$thread_subject\"\n\n".htmlspecialchars_decode($this->get_threadlink($thread))."\n\n$meta", 70);
 			} else {
-				$message = wordwrap("New reply on topic:\"$thread_subject\"\n\n".$this->get_threadlink($thread)."0\n\n$meta", 70);
+				$message = wordwrap("New reply on topic:\"$thread_subject\"\n\n".htmlspecialchars_decode($this->get_threadlink($thread))."0\n\n$meta", 70);
 			}
 			$replyto = $sender;
 			$headers = "MIME-Version: 1.0\r\n" .
