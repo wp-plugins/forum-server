@@ -326,9 +326,10 @@ $image = WPFURL."images/user.png";
 		}
 		function get_dbsize(){
 			global $wpdb;
+			$size = '';
 			$res = $wpdb->get_results("SHOW TABLE STATUS");
 			foreach($res as $r)
-				$size += $r->Data_length + $r->index_length;
+				$size += $r->Data_length + $r->Index_length;
 
 			return $this->formatfilesize($size);
 		}
@@ -526,7 +527,6 @@ $image = WPFURL."images/user.png";
 			$groups = $_POST['delete_groups'];
 			$forums = $_POST['delete_forums'];
 
-
 			$forum_num = count($forums);
 			$group_num = count($groups);
 
@@ -557,20 +557,17 @@ $image = WPFURL."images/user.png";
 				// Delete the group
 				$group_count += $wpdb->query("DELETE FROM $table_groups WHERE id = {$groups[$i]}");
 			}
-
 			// Delete marked forums
 			for($i = 0; $i < $forum_num; $i++){
-
-				$threads = $wpdb->get_results("select id from $table_threads where parent_id = {$forums[$i]}");
-
+				$threads = $wpdb->get_results("select id from $table_threads where parent_id = {$forums[$i]->id}");
 				foreach($threads as $thread){
 
 					$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
 				}
-				$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = {$forums[$i]}");
+				$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = {$forums[$i]->id}");
 
 
-				$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE id = {$forums[$i]}");
+				$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE id = {$forums[$i]->id}");
 			}
 			$msg .=  __("Groups deleted:", "vasthtml")." ".$group_count."<br/>"
 					.__("Forums deleted:", "vasthtml")." ".$forum_count."<br/>"

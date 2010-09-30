@@ -6,7 +6,6 @@
  */
 class vasthtml_pro {
 	
-	
 }
 
 ?>

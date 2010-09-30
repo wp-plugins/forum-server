@@ -3,7 +3,7 @@
 	if($user_ID || $this->allow_unreg()){
 	$options = get_option("vasthtml_options");
 	$this->current_view = NEWTOPIC;
-	$out .= $this->header();
+	$out = $this->header();
 	
 	$out .= "<form action='".WPFURL."wpf-insert.php' name='addform' method='post'>";
 	$out .= "<table class='wpf-table' width='100%'>

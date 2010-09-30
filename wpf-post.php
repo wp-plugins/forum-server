@@ -20,6 +20,7 @@ if(($_GET['vasthtmlaction'] == "postreply")){
 	$options = get_option("vasthtml_options");
 	$this->current_view = POSTREPLY;
 	$thread = $this->check_parms($_GET['thread']);
+	$page = $this->curr_page;
 		$out .= $this->header();
 
 	$subj = htmlentities($this->get_subject($thread), $quote_style = ENT_QUOTES);
@@ -42,11 +43,12 @@ if(($_GET['vasthtmlaction'] == "postreply")){
 			</tr>";
 			
 				$out .= $this->get_captcha();
-			
+
 			$out .= "<tr>
 				<td></td>
 				<td><input type='submit' name='add_post_submit' value='".__("Submit", "vasthtml")."' /></td>
 				<input type='hidden' name='add_post_forumid' value='".$this->check_parms($thread)."'/>
+				<input type='hidden' name='add_topic_page' value='".$page."'/>
 				<input type='hidden' name='add_topic_plink' value='".get_permalink($this->page_id)."'/>
 
 			</tr>
@@ -62,6 +64,7 @@ if(($_GET['vasthtmlaction'] == "editpost")){
 
 	$id = $_GET['id'];
 	$thread = $this->check_parms($_GET['t']);
+	$page = $this->curr_page;
 
 		$out .= $this->header();
 
@@ -89,6 +92,7 @@ if(($_GET['vasthtmlaction'] == "editpost")){
 				<td><input type='submit' name='edit_post_submit' value='".__("Save Post", "vasthtml")."' /></td>
 				<input type='hidden' name='edit_post_id' value='".$post->id."'/>
 				<input type='hidden' name='thread_id' value='".$thread."'/>
+				<input type='hidden' name='edit_topic_page' value='".$page."'/>
 				<input type='hidden' name='add_topic_plink' value='".get_permalink($this->page_id)."'/>
 
 			</tr>

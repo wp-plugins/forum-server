@@ -6,7 +6,7 @@ Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.0.1
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -78,6 +78,15 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.3 =
+* Fixed bug: "My hot topics" icon fixed
+* Fixed bug: "Minimize forum header" button fixed
+* Fixed bug: Topics are now deleted when the only post in them is deleted
+* Fixed bug: All category content is now deleted when a category is deleted
+* Fixed bug: Wrong redirect after posting in topic on any, but first page
+* Fixed bug: Checking user_level when using "sticky post" function
+* Fixed bug: Forum related errors (undefined variables) with debug-mode enabled
+* Translations: Added translation support for several strings of text in code
 = 1.6.2 =
 * Fixed bug: Incorrect formatting in replies subject for topics and posts containing apostrophes
 * Fixed bug: Disallow ability to modify guest posts by other guests

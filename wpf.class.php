@@ -17,9 +17,10 @@ class vasthtml extends vasthtml_pro{
 		add_action("admin_menu", array(&$this,"add_admin_pages"));
 		add_action("admin_head", array(&$this, "admin_header"));
 		add_action("wp_head", array(&$this, "setup_header"));
-		add_action("plugins_loaded", array(&$this, "wpf_load_widget"));
+		add_action("plugins_loaded", array(&$this, "load_wpf_posts_widget"));
 		add_action("wp_footer", array(&$this, "wpf_footer"));
 
+//		add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
 //		add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
 //		add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
 //		add_filter("init", array(&$this, "do_flush_rules"));
@@ -112,7 +113,7 @@ class vasthtml extends vasthtml_pro{
 								'forum_captcha' 				=> true,
 								'hot_topic'						=> 15,
 								'veryhot_topic'					=> 25,
-								'forum_seo_urls'				=> true
+								'forum_seo_urls'				=> false
 								);
 
 		$this->user_options = array(
@@ -159,16 +160,20 @@ class vasthtml extends vasthtml_pro{
 
 	}
 
-	function wpf_load_widget() {
+	function load_wpf_posts_widget() {
 		if (!function_exists('register_sidebar_widget')) {
 			return;
 		}
 
 		//$widget_ops = array('classname' => 'widget_fs_vasthtml', 'description' => __( "Display latest activity in the forum") );
 
-		register_sidebar_widget(__("Forums Latest Activity", "vasthtml"), array(&$this, "widget"));
-    	register_widget_control("Forums Latest Activity", array(&$this, "widget_wpf_control"));
-
+		if ((float) get_bloginfo('version') >= 2.8) {
+			wp_register_sidebar_widget('latest_activity', __("Forums Latest Activity", "vasthtml"), array(&$this, "widget"));
+			wp_register_widget_control('latest_activity', "Forums Latest Activity", array(&$this, "widget_wpf_control"));
+		} else {
+			register_sidebar_widget(__("Forums Latest Activity", "vasthtml"), array(&$this, "widget"));
+			register_widget_control("Forums Latest Activity", array(&$this, "widget_wpf_control"));
+		}
 	}
 	function widget($args){
 		global $wpdb;
@@ -294,7 +299,7 @@ class vasthtml extends vasthtml_pro{
 		return $this->post_reply_link.".$this->curr_page";
 	}
 	function get_forumlink($id){
-		if ($this->opt[forum_seo_urls]) {
+		if ($this->opt['forum_seo_urls']) {
 			$g = $this->check_subject($this->get_groupname($this->get_parent_id(FORUM, $id))."-g".$this->get_parent_id(FORUM, $id));
 			$f = $this->check_subject($this->get_forumname($id)."-f".$id);
 			return rtrim($this->home_url, "/")."/".$g."/".$f;//.".$this->curr_page";
@@ -303,7 +308,7 @@ class vasthtml extends vasthtml_pro{
 		}
 	}
 	function get_grouplink($id){
-		if ($this->opt[forum_seo_urls]) {
+		if ($this->opt['forum_seo_urls']) {
 			$g = $this->check_subject($this->get_groupname($id)."-g".$id);
 			return rtrim($this->home_url, "/")."/".$g;//.".$this->curr_page";
 		} else {
@@ -311,7 +316,7 @@ class vasthtml extends vasthtml_pro{
 		}
 	}
 	function get_threadlink($id){
-		if ($this->opt[forum_seo_urls]) {
+		if ($this->opt['forum_seo_urls']) {
 			$g = $this->check_subject($this->get_groupname($this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $id)))."-g".$this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $id)));
 			$f = $this->check_subject($this->get_forumname($this->get_parent_id(THREAD, $id))."-f".$this->get_parent_id(THREAD, $id));
 			$t = $this->check_subject($this->get_subject($id)."-t".$id);
@@ -428,7 +433,7 @@ class vasthtml extends vasthtml_pro{
 
 		$p = explode(".", $parm);
 
-		$this->curr_page = $p[1];
+		isset($p[1]) ? $this->curr_page = $p[1] : $this->curr_page = '';
 		return $p[0];
 	}
 
@@ -442,14 +447,20 @@ class vasthtml extends vasthtml_pro{
 
 		get_currentuserinfo();
 		if($user_ID){
-			if(get_usermeta($user_ID, 'wpf_useroptions') == ''){
-				update_usermeta($user_ID, 'wpf_useroptions', $this->user_options);
+			if ((float) get_bloginfo('version') >= 3.0) {
+				if(get_user_meta($user_ID, 'wpf_useroptions', true) == ''){
+					update_usermeta($user_ID, 'wpf_useroptions', $this->user_options);
+				}
+			} else {
+				if(get_usermeta($user_ID, 'wpf_useroptions') == ''){
+					update_usermeta($user_ID, 'wpf_useroptions', $this->user_options);
+				}
 			}
 		}
-
+		isset($_GET['vasthtmlaction']) ? $action = $_GET['vasthtmlaction'] : $action = false;
 
 		if (isset($_GET['vasthtmlaction'])) {
-			$action = $_GET['vasthtmlaction'];
+//			$action = $_GET['vasthtmlaction'];
 			// Set up 301 redirect for old pages if SEO-URL is ON
 			if ($this->opt['forum_seo_urls']) {
 				// Move and delete topics
@@ -482,7 +493,7 @@ class vasthtml extends vasthtml_pro{
 		} elseif ($this->opt['forum_seo_urls']) {
 			$uri = $this->get_seo_query();
 
-			if ($uri['action'] && $uri['id']) {
+			if (!empty($uri) && $uri['action'] && $uri['id']) {
 				switch($uri['action']) {
 					case 'g':
 						$action = 'vforum';
@@ -527,7 +538,7 @@ class vasthtml extends vasthtml_pro{
 
 			}
 		}
-		elseif (!$uri  && !$action){
+		elseif (!isset($uri) && !$action){
 			$this->current_view = MAIN;
 			$this->mydefault();
 		}
@@ -584,6 +595,7 @@ class vasthtml extends vasthtml_pro{
 
 	function showforum($forum_id){
 		global $user_ID, $wpdb, $forum_instance;
+		$out = '';
 		
 		if (!empty($forum_instance) && $forum_instance === true) {
 			return false;
@@ -638,7 +650,7 @@ class vasthtml extends vasthtml_pro{
 				foreach($sticky_threads as $thread){
 
 					if($this->is_moderator($user_ID, $this->current_forum)){
-						if ($this->opt[forum_seo_urls]) {
+						if ($this->opt['forum_seo_urls']) {
 							$strCommands	= "<a href='".$this->forum_link.$this->current_forum."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->forum_link.$this->current_forum."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
 						} else {
 							$strCommands	= "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
@@ -666,8 +678,8 @@ class vasthtml extends vasthtml_pro{
 										.$this->output_filter($thread->subject)."</a>".$this->get_pagelinks($thread->id)."&nbsp;&nbsp;$image</span> $del
 									</td>
 									<td>".$this->profile_link($thread->starter)."</td>
-									<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
-									<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
+									<td class='wpf-alt sticky' align='center'>".$this->num_posts($thread->id)."</td>
+									<td class='wpf-alt sticky' align='center'>".$thread->views."</td>
 									<td><small>".$this->get_lastpost($thread->id)."</small></td>
 								</tr>";
 					}
@@ -678,6 +690,7 @@ class vasthtml extends vasthtml_pro{
 				echo '<pre>';
 
 				echo '</pre>';
+				$alt = '';
 				foreach($threads as $thread){
 					$alt=($alt=="alt even")?"odd":"alt even";
 					if($user_ID){
@@ -692,7 +705,7 @@ class vasthtml extends vasthtml_pro{
 					}
 
 					if($this->is_moderator($user_ID, $this->current_forum)){
-						if ($this->opt[forum_seo_urls]) {
+						if ($this->opt['forum_seo_urls']) {
 							$strCommands	= "<a href='".$this->forum_link.$this->current_forum."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->forum_link.$this->current_forum."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
 						} else {
 							$strCommands	= "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$thread->id'>".__("Move Topic", "vasthtml")."</a> | <a href='".$this->get_forumlink($this->current_forum)."&delete_topic&topic=$thread->id'>".__("Delete Topic", "vasthtml")."</a>";
@@ -710,8 +723,8 @@ class vasthtml extends vasthtml_pro{
 									</td>
 
 									<td>".$this->profile_link($thread->starter)."</td>
-									<td class='wpf-alt $sticky' align='center'>".$this->num_posts($thread->id)."</td>
-									<td class='wpf-alt $sticky' align='center'>".$thread->views."</td>
+									<td class='wpf-alt sticky' align='center'>".$this->num_posts($thread->id)."</td>
+									<td class='wpf-alt sticky' align='center'>".$thread->views."</td>
 									<td><small>".$this->get_lastpost($thread->id)."</small></td>
 								</tr>";
 					}
@@ -761,7 +774,11 @@ class vasthtml extends vasthtml_pro{
 
 
 			if($user_ID){
-				$op = get_usermeta($user_ID, "wpf_useroptions");
+				if ((float) get_bloginfo('version') >= 3.0) {
+					$op = get_user_meta($user_ID, "wpf_useroptions", true);
+				} else {
+					$op = get_usermeta($user_ID, "wpf_useroptions");
+				}
 				if($this->array_search($this->current_thread, (array)$op["notify_topics"], true))
 					$this->notify_msg = __("Remove this topic from your email notifications?", "vasthtml");
 				else
@@ -780,7 +797,7 @@ class vasthtml extends vasthtml_pro{
 				wp_die(__("Sorry, but you don't have access to this forum", "vasthtml"));
 			}
 
-			$out .= "<table cellpadding='0' cellspacing='0'>
+			$out = "<table cellpadding='0' cellspacing='0'>
 						<tr>
 							<td width='100%'>".$this->post_pageing($thread_id)."</td>
 							<td>".$this->topic_menu($thread_id)."
@@ -798,6 +815,7 @@ class vasthtml extends vasthtml_pro{
 					</table>";
 			$out .= "</div>";
 
+			$class = '';
 			foreach($posts as $post){
 					$class = ($class == "wpf-alt")?"":"wpf-alt";
 				$user = get_userdata($post->author_id);
@@ -860,12 +878,12 @@ class vasthtml extends vasthtml_pro{
 						$o .= "<td nowrap='nowrap' width='10%'><span class='quote'></span><a href='$this->post_reply_link&amp;quote=$post_id.$this->curr_page'> ".__("Quote", "vasthtml")."</a></td>";
 
 						if ($this->is_moderator($user_ID, $this->current_forum) || $user_ID == $author_id) {
-							if ($this->opt[forum_seo_urls]) {
+							if ($this->opt['forum_seo_urls']) {
 							$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->thread_link.$this->current_thread."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
-									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
+									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.$this->curr_page'>" .__("Edit", "vasthtml")."</a></td>";
 							} else {
 							$o .= "<td nowrap='nowrap' width='10%'><span class='delete'></span><a onclick=\"return wpf_confirm();\" href='".$this->get_threadlink($this->current_thread)."&amp;remove_post&amp;id=$post_id'> ".__("Remove", "vasthtml")."</a></td>
-									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.0'>" .__("Edit", "vasthtml")."</a></td>";
+									<td nowrap='nowrap' width='10%'><span class='modify'></span><a href='".$this->base_url."editpost&amp;id=$post_id&amp;t=$this->current_thread.$this->curr_page'>" .__("Edit", "vasthtml")."</a></td>";
 							}
 						}
 					}
@@ -891,7 +909,7 @@ class vasthtml extends vasthtml_pro{
 	function mydefault(){
 		global $user_ID, $forum_instance;
 		if (!empty($forum_instance) && $forum_instance === true) {
-			return $content;
+			return false;
 		}
 
 //<a name='$g->id' href='http://mac/smf/index.php?action=collapse;c=1;sa=collapse;#1'>General Category</a>"
@@ -910,6 +928,8 @@ class vasthtml extends vasthtml_pro{
 				$frs = $this->get_forums($g->id);
 				//if($frs)
 					//$this->o .= "<tr>";
+				$alt = '';
+
 				foreach($frs as $f){
 				$alt=($alt=="alt even")?"odd":"alt even";
 					$this->o .= "<tr class='$alt'>";
@@ -1039,7 +1059,7 @@ class vasthtml extends vasthtml_pro{
 		global $wpdb;
 		$obj_pattern = '/^<object.*/';
 		if (preg_match($obj_pattern, $string) === 0) {
-			return strip_tags($wpdb->escape($string));
+			return wp_specialchars($wpdb->escape($string));
 		} else {
 			return $wpdb->escape($string);
 		}
@@ -1086,7 +1106,7 @@ class vasthtml extends vasthtml_pro{
 
 		$date = $wpdb->get_row("SELECT $this->t_posts.date, $this->t_posts.id, $this->t_posts.parent_id, $this->t_posts.author_id FROM $this->t_posts INNER JOIN $this->t_threads ON $this->t_posts.parent_id=$this->t_threads.id WHERE $this->t_threads.parent_id = $forum ORDER BY $this->t_posts.date DESC");
 
-		if($post_date)
+		if($post_date && is_object($date))
 			return $date->date;
 		if(!$date)
 			return __("No topics yet", "vasthtml");
@@ -1114,7 +1134,6 @@ class vasthtml extends vasthtml_pro{
 			return true;
 
 			foreach($user_groups as $user_group){
-
 	 			if($this->is_user_ingroup($user_ID, $user_group))
 	 				return true;
 			}
@@ -1235,7 +1254,11 @@ class vasthtml extends vasthtml_pro{
 
 		if($data->user_level > 8)
 			return true;
-		$forums = get_usermeta($user_id, 'wpf_moderator');
+		if ((float) get_bloginfo('version') >= 3.0) {
+			$forums = get_user_meta($user_id, 'wpf_moderator', true);
+		} else {
+			$forums = get_usermeta($user_id, 'wpf_moderator');
+		}
 
 		if(!$forum_id)
 			return $forums;
@@ -1264,6 +1287,8 @@ class vasthtml extends vasthtml_pro{
 
 	function get_forum_moderators($forum_id){
 		global $wpdb;
+		
+		$out = '';
 		$mods = $wpdb->get_results("SELECT user_id, meta_value FROM $wpdb->usermeta WHERE meta_key = 'wpf_moderator'");
 
 		//$this->pre($mods);
@@ -1409,12 +1434,13 @@ class vasthtml extends vasthtml_pro{
 
 		function forum_menu($group, $pos = "top"){
 			global $user_ID;
+			$menu = '';
 			if($user_ID || $this->allow_unreg()){
-				if($pos == "top")
+				if($pos == "top") {
 					$class = "mirrortab";
-				else
+				} else {
 					$class= "maintab";
-
+				}
 				$menu .= "<table cellpadding='0' cellspacing='0' style='margin-right:10px;' id='forummenu'>";
 				$menu .= "<tr>
 								<td class='".$class."_first'>&nbsp;</td>
@@ -1435,16 +1461,16 @@ class vasthtml extends vasthtml_pro{
 					$class = "maintab";
 				}
 				if($this->is_moderator($user_ID, $this->current_forum)){
-					if ($this->opt[forum_seo_urls]) {
+					if ($this->opt['forum_seo_urls']) {
 						if($this->is_sticky()){
 							$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;sticky&amp;id=$this->current_thread'>".__("Unstick", "vasthtml")."</a></td>";
 						}else{
 							$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a></td>";
 						}
 						if($this->is_closed()){
-							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a></td>";
+							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=0&amp;id=$this->current_thread'>".__("Re-open", "vasthtml")."</a></td>";
 						}else{
-							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=1&amp;id=$this->current_thread'>Close</a></td>";
+							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=1&amp;id=$this->current_thread'>".__("Close", "vasthtml")."</a></td>";
 						}
 					} else {
 						if($this->is_sticky()){
@@ -1453,18 +1479,18 @@ class vasthtml extends vasthtml_pro{
 							$stick = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a></td>";
 						}
 						if($this->is_closed()){
-							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a></td>";
+							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>".__("Re-open", "vasthtml")."</a></td>";
 						}else{
-							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>Close</a></td>";
+							$closed = "<td class='".$class."_back' nowrap='nowrap'><a href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>".__("Close", "vasthtml")."</a></td>";
 						}
 					}
 				}
-				$menu .= "<table cellpadding='0' cellspacing='0' style='margin-right:10px;' id='topicmenu'>";
+				$menu = "<table cellpadding='0' cellspacing='0' style='margin-right:10px;' id='topicmenu'>";
 				$menu .= "<tr><td class='".$class."_first'>&nbsp;</td>";
 				if(!$this->is_closed()){
 					$menu .= "<td valign='top' class='".$class."_back' nowrap='nowrap'><a href='".$this->get_post_reply_link()."'>".__("Reply", "vasthtml")."</a></td>";
 				}
-				if ($this->opt[forum_seo_urls]) {
+				if ($this->opt['forum_seo_urls']) {
 					$menu .= "<td class='".$class."_back' nowrap='nowrap'><a onclick='return notify();' href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;notify&amp;id=$this->current_thread'>".__("Notify", "vasthtml")."</a></td>
 					<td class='".$class."_back' nowrap='nowrap'><a href='$this->topic_feed_url"."$this->current_thread'>".__("RSS feed", "vasthtml")."</a></td>
 					".$stick.$closed."
@@ -1489,7 +1515,7 @@ class vasthtml extends vasthtml_pro{
 				$this->closed_post();
 
 			$link = "<a id='user_button' href='".$this->base_url."profile&amp;id=$user_ID' title='".__("My profile", "vasthtml")."'>".__("My Profile", "vasthtml")."</a>";
-			if ($this->opt[forum_seo_urls]) {
+			if ($this->opt['forum_seo_urls']) {
 				$menuitems = array(
 								"home" 	    => "<a id='home_button' href='".$this->home_url."'>".__("Forum Home", "vasthtml")."</a>",
 								"logout" 	=> "<a href='$this->logout_link'>".__("Log out", "vasthtml")."</a>",
@@ -1500,9 +1526,9 @@ class vasthtml extends vasthtml_pro{
 								"feed" 		=> "<a id='rss_button' href='$this->topic_feed_url"."$this->current_thread'>".__("Feed", "vasthtml")."</a>",
 								"sticky" 	=> "<a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a>",
 								"unsticky" 	=> "<a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;sticky&amp;id=$this->current_thread'>".__("Unstick", "vasthtml")."</a>",
-								"closed" 	=> "<a id='close_button' href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=1&amp;id=$this->current_thread'>Close</a>",
-								"unclosed" 	=> "<a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a>",
-								"move" 		=> "<a href='".$this->forum_link.$this->current_forum.".".$this->curr_page."&getNewForumID&topic=$this->current_thread'>Move Topic</a>"
+								"closed" 	=> "<a id='close_button' href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=1&amp;id=$this->current_thread'>".__("Close", "vasthtml")."</a>",
+								"unclosed" 	=> "<a href='".$this->thread_link.$this->current_thread.".".$this->curr_page."&amp;closed=0&amp;id=$this->current_thread'>".__("Re-open", "vasthtml")."</a>",
+								"move" 		=> "<a href='".$this->forum_link.$this->current_forum.".".$this->curr_page."&getNewForumID&topic=$this->current_thread'>".__("Move Topic", "vasthtml")."</a>"
 				);
 			} else {
 				$menuitems = array(
@@ -1515,9 +1541,9 @@ class vasthtml extends vasthtml_pro{
 								"feed" 		=> "<a id='rss_button' href='$this->topic_feed_url"."$this->current_thread'>".__("Feed", "vasthtml")."</a>",
 								"sticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Make sticky", "vasthtml")."</a>",
 								"unsticky" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;sticky&amp;id=$this->current_thread'>".__("Unstick", "vasthtml")."</a>",
-								"closed" 	=> "<a id='close_button' href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>Close</a>",
-								"unclosed" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>Re-open</a>",
-								"move" 		=> "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$this->current_thread'>Move Topic</a>"
+								"closed" 	=> "<a id='close_button' href='".$this->get_threadlink($this->current_thread)."&amp;closed=1&amp;id=$this->current_thread'>".__("Close", "vasthtml")."</a>",
+								"unclosed" 	=> "<a href='".$this->get_threadlink($this->current_thread)."&amp;closed=0&amp;id=$this->current_thread'>".__("Re-open", "vasthtml")."</a>",
+								"move" 		=> "<a href='".$this->get_forumlink($this->current_forum)."&getNewForumID&topic=$this->current_thread'>".__("Move Topic", "vasthtml")."</a>"
 				);
 			}
 
@@ -1666,14 +1692,14 @@ function forum_get_group_from_post($thread_id){
 		$trail = "<a href='".get_permalink($this->page_id)."'>Forum</a>";
 
 		if($this->current_group)
-			if ($this->opt[forum_seo_urls]) {
+			if ($this->opt['forum_seo_urls']) {
 				$g = $this->check_subject($this->get_groupname($this->current_group))."-g".$this->current_group;
 				$trail .= " <strong>&raquo;</strong> <a href='".rtrim($this->home_url, "/")."/".$g.".0'>".$this->get_groupname($this->current_group)."</a>";
 			} else {
 				$trail .= " <strong>&raquo;</strong> <a href='$this->base_url"."vforum&amp;g=$this->current_group.0'>".$this->get_groupname($this->current_group)."</a>";
 			}
 		if($this->current_forum)
-			if ($this->opt[forum_seo_urls]) {
+			if ($this->opt['forum_seo_urls']) {
 				$g = $this->check_subject($this->get_groupname($this->get_parent_id(FORUM, $this->current_forum))."-g".$this->get_parent_id(FORUM, $this->current_forum));
 				$f = $this->check_subject($this->get_forumname($this->current_forum)."-f".$this->current_forum);
 				$trail .= " <strong>&raquo;</strong> <a href='".rtrim($this->home_url, "/")."/".$g."/".$f.".0'>".$this->get_forumname($this->current_forum)."</a>";
@@ -1681,7 +1707,7 @@ function forum_get_group_from_post($thread_id){
 				$trail .= " <strong>&raquo;</strong> <a href='$this->base_url"."viewforum&amp;f=$this->current_forum.0'>".$this->get_forumname($this->current_forum)."</a>";
 			}
 		if($this->current_thread)
-			if ($this->opt[forum_seo_urls]) {
+			if ($this->opt['forum_seo_urls']) {
 				$g = $this->check_subject($this->get_groupname($this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $this->current_thread)))."-g".$this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $this->current_thread)));
 				$f = $this->check_subject($this->get_forumname($this->get_parent_id(THREAD, $this->current_thread))."-f".$this->get_parent_id(THREAD, $this->current_thread));
 				$t = $this->check_subject($this->get_threadname($this->current_thread)."-t".$this->current_thread);
@@ -1717,10 +1743,17 @@ function forum_get_group_from_post($thread_id){
 	function last_visit($format = ''){
 		global $user_ID;
 
-		if($format)
+		if($format && (float) get_bloginfo('version') >= 3.0) {
+			return @date($this->opt["forum_date_format"], get_user_meta($user_ID, "lastvisit", true));
+		} elseif ($format) {
 			return @date($this->opt["forum_date_format"], get_usermeta($user_ID, "lastvisit"));
+		}
 
-		return get_usermeta($user_ID, "lastvisit");
+		if ((float) get_bloginfo('version') >= 3.0) {
+			return get_user_meta($user_ID, "lastvisit", true);
+		} else {
+			return get_usermeta($user_ID, "lastvisit");
+		}
 	}
 
 	function set_cookie(){
@@ -1744,12 +1777,14 @@ function forum_get_group_from_post($thread_id){
 	function header(){
 		global $user_ID, $user_login;
 		$this->setup_links();
+		$meta = '';
 		if($user_ID){
 			$welcome = __("Welcome", "vasthtml"). " <strong>$user_login</strong>";
 			$meta .= "".__("<div style='float:left'>Your last visit was:", "vasthtml")." ".$this->last_visit(true)."<br />";
 			$meta .= "<a href='".$this->base_url."shownew'>".__("Show new topics since your last visit.", "vasthtml")."</a><br />";
 			//$meta .= "<a href='".wp_logout_url()."'>".__("Log out", "vasthtml")."</a>";
-			$meta .= "<a href='".wp_nonce_url( site_url("wp-login.php?action=logout$redirect", 'login'), 'log-out' )."'>".__("Log out", "vasthtml")."</a></div>";
+			//$meta .= "<a href='".wp_nonce_url( site_url("wp-login.php?action=logout$redirect", 'login'), 'log-out' )."'>".__("Log out", "vasthtml")."</a></div>";
+			$meta .= "<a href='".wp_nonce_url( site_url("wp-login.php?action=logout", 'login'), 'log-out' )."'>".__("Log out", "vasthtml")."</a></div>";
 			$avatar = "<td class='wpf-alt' width='6%'>".$this->get_avatar($user_ID, 60)."</td>";
 			$colspan = "colspan = '2'";
 
@@ -1758,6 +1793,7 @@ function forum_get_group_from_post($thread_id){
 			$meta = "".__("Welcome Guest, please login or", "vasthtml")." <a href='$this->reg_link'>".__("register.", "vasthtml")."</a><br />".$this->login_form();
 			$welcome = __("Guest", "vasthtml"). " <strong>$user_login</strong>";
 			$colspan = "";
+			$avatar = "";
 		}
 		if(!$user_ID && !$this->allow_unreg()){
 			$meta = __("<div id='forumLogin'><p>Welcome Guest, posting in this forum requires", "vasthtml")." <a href='$this->reg_link'>".__("registration.", "vasthtml")."</a></p>".$this->login_form();
@@ -1769,7 +1805,7 @@ function forum_get_group_from_post($thread_id){
 					<tr>
 						<th $colspan ><h4 style='float:left;'>$welcome&nbsp;</h4>
 						<a style='float:right;' href='#' onclick='shrinkHeader(!current_header); return false;'>
-							<span id='upshrink'></span></a>
+							<span id='upshrink' class='upshrink'></span></a>
 						</th>
 					</tr>
 
@@ -1799,14 +1835,14 @@ function forum_get_group_from_post($thread_id){
 	}
 	function get_pagelinks($thread_id){
 		global $wpdb;
-
+		$out = '';
 		$pages = $wpdb->get_results("SELECT * FROM $this->t_posts WHERE parent_id = $thread_id");
 
 		if(count($pages) > $this->opt['forum_posts_per_page']){
 			$num_pages = ceil(count($pages)/$this->opt['forum_posts_per_page']);
 
 			for($i = 0; $i < $num_pages; ++$i){
-				if ($this->opt[forum_seo_urls])
+				if ($this->opt['forum_seo_urls'])
 					$out .= " <a href='".$this->get_threadlink($thread_id).".".$i."'>".($i+1)."</a>";
 				else
 					$out .= " <a href='".$this->thread_link.$thread_id.".".$i."'>".($i+1)."</a>";
@@ -1818,7 +1854,8 @@ function forum_get_group_from_post($thread_id){
 	}
 	function post_pageing($thread_id){
 		global $wpdb;
-		$out .=  __("Pages:", "vasthtml");
+
+		$out =  __("Pages:", "vasthtml");
 
 		$count = $wpdb->get_var("SELECT count(*) FROM $this->t_posts WHERE parent_id = $thread_id");
 		$num_pages = ceil($count/$this->opt['forum_posts_per_page']);
@@ -1827,7 +1864,7 @@ function forum_get_group_from_post($thread_id){
 		for($i = 0; $i < $num_pages; ++$i){
 			if($i ==  $this->curr_page)
 				$out .= " [<strong>".($i+1)."</strong>]";
-			elseif ($this->opt[forum_seo_urls])
+			elseif ($this->opt['forum_seo_urls'])
 				$out .= " <a href='".$this->get_threadlink($this->current_thread).".".$i."'>".($i+1)."</a>";
 			else
 				$out .= " <a href='".$this->thread_link.$this->current_thread.".".$i."'>".($i+1)."</a>";
@@ -1836,8 +1873,9 @@ function forum_get_group_from_post($thread_id){
 	}
 
 
-		function thread_pageing($forum_id){
+	function thread_pageing($forum_id){
 		global $wpdb;
+		$out = '';
 		$out .= __("Pages:", "vasthtml");
 
 		$count = $wpdb->get_var("SELECT count(*) FROM $this->t_threads WHERE parent_id = $forum_id");
@@ -1847,7 +1885,7 @@ function forum_get_group_from_post($thread_id){
 		for($i = 0; $i < $num_pages; ++$i){
 			if($i ==  $this->curr_page)
 				$out .= " [<strong>".($i+1)."</strong>]";
-			elseif ($this->opt[forum_seo_urls])
+			elseif ($this->opt['forum_seo_urls'])
 				$out .= " <a href='".$this->get_forumlink($this->current_forum).".".$i."'>".($i+1)."</a>";
 			else
 				$out .= " <a href='".$this->forum_link.$this->current_forum.".".$i."'>".($i+1)."</a>";
@@ -1932,9 +1970,22 @@ function forum_get_group_from_post($thread_id){
 			$del = "ok";
 
 		if($del == "ok"){
-			$wpdb->query("DELETE FROM $this->t_posts WHERE id = $id");
-			$this->o .= "<div class='updated'>".__("Post deleted", "vasthtml")."</div>";
-		}else{
+			// Delete parent topic if was deleted single (last one) post
+			$t_posts_count = $wpdb->get_var('SELECT count(*) from '.$this->t_posts.' WHERE parent_id ='.$this->current_thread);
+
+			if ($t_posts_count == 1) {
+				$goto_forum = 'location: ?vasthtmlaction=viewforum&f='.$this->current_forum;
+
+				$wpdb->query('DELETE FROM '.$this->t_posts.' WHERE id = '.$id);
+				$wpdb->query('DELETE FROM '.$this->t_threads.' WHERE id = '.$this->current_thread);
+				
+				@header($goto_forum);
+				@exit;
+			} else {
+				$wpdb->query("DELETE FROM $this->t_posts WHERE id = $id");
+				$this->o .= "<div class='updated'>".__("Post deleted", "vasthtml")."</div>";
+			}
+		} else {
 			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
 		}
@@ -1942,27 +1993,43 @@ function forum_get_group_from_post($thread_id){
 	}
 	function sticky_post(){
 		global $user_level, $user_ID, $wpdb;
-		if(!$this->is_moderator($user_ID, $this->current_forum) || $user_level < 8){
+		$sticky = "fail";
+
+		if ($this->is_moderator($user_ID, $this->current_forum)) 
+			$sticky = "ok";
+		if ($user_level >= 8)
+			$sticky = "ok";
+
+		if ($sticky == "ok") {
+			$id = $_GET['id'];
+			$status = $wpdb->get_var("select status from $this->t_threads where id = $id");
+
+			switch($status){
+				case 'sticky':
+					$wpdb->query("update $this->t_threads set status = 'open' where id = $id");
+					break;
+				case 'open':
+					$wpdb->query("update $this->t_threads set status = 'sticky' where id = $id");
+					break;
+			}
+		} else {
 			@ob_end_clean();
 			wp_die(__("Cheating, are we?", "vasthtml"));
 		}
-		$id = $_GET['id'];
-		$status = $wpdb->get_var("select status from $this->t_threads where id = $id");
 
-		switch($status){
-			case 'sticky':
-				$wpdb->query("update $this->t_threads set status = 'open' where id = $id");
-				break;
-			case 'open':
-				$wpdb->query("update $this->t_threads set status = 'sticky' where id = $id");
-				break;
-		}
+//		if(!$this->is_moderator($user_ID, $this->current_forum) || $user_level < 8){
+//			@ob_end_clean();
+//			wp_die(__("Cheating, are we?", "vasthtml"));
+//		}
 	}
 	function notify_post(){
 		global $wpdb, $user_ID;
 		$id = $_GET['id'];
-
-		$op = get_usermeta($user_ID, "wpf_useroptions");
+		if ((float) get_bloginfo('version') >= 3.0) {
+			$op = get_user_meta($user_ID, "wpf_useroptions", true);
+		} else {
+			$op = get_usermeta($user_ID, "wpf_useroptions");
+		}
 		$topics = $op['notify_topics'];
 		$topics = is_array($topics) ? $topics : array();
 		// Add topic
@@ -2039,7 +2106,11 @@ function forum_get_group_from_post($thread_id){
 		if($user == __("Guest", "vasthtml"))
 			return $user;
 
-		$user_op = get_usermeta($user_id, "wpf_useroptions");
+		if ((float) get_bloginfo('version') >= 3.0) {
+			$user_op = get_user_meta($user_id, "wpf_useroptions", true);
+		} else {
+			$user_op = get_usermeta($user_id, "wpf_useroptions");
+		}
 		if($user_op)
 			if($user_op['allow_profile'] == false)
 				return $user;
@@ -2090,7 +2161,7 @@ function forum_get_group_from_post($thread_id){
 			case FORUM: break;
 			case THREAD: break;
 		}
-		$this->o .= $o;
+		$this->o .= (!empty($o)) ? $o : '';
 	}
 
 	function latest_member(){
@@ -2434,7 +2505,7 @@ function forum_get_group_from_post($thread_id){
 			return "<span class='normal_post'></span>";
 		}
 		if($post_count > $this->opt['veryhot_topic']){
-			return "<span class='my_hot_post'>/span>";
+			return "<span class='my_hot_post'></span>";
 		}
 		if($post_count > $this->opt['hot_topic']){
 			return "<span class='hot_post'></span>";
@@ -2481,7 +2552,7 @@ function forum_get_group_from_post($thread_id){
 
 				$to = $user->user_email;
 
-				wp_mail($to, $subject, stripslashes($message), $headers);
+				wp_mail($to, stripslashes($subject), stripslashes($message), $headers);
 			}
 		}
 

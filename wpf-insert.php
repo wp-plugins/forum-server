@@ -44,14 +44,14 @@ if (file_exists($root.'/wp-load.php')) {
 
 			$sql_thread = "INSERT INTO $vasthtml->t_threads 
 					(last_post, subject, parent_id, `date`, status, starter) 
-			 VALUES('$date', '$subject', '$forum_id', '$date', 'open', '$user_ID')";
+			 VALUES('$date', '".stripslashes($subject)."', '$forum_id', '$date', 'open', '$user_ID')";
 			
 			$wpdb->query($sql_thread);
 			
 		$id=$wpdb->insert_id; 
 			$sql_post = "INSERT INTO $vasthtml->t_posts 
 						(text, parent_id, `date`, author_id, subject)
-				 VALUES('$content', '$id', '$date', '$user_ID', '$subject')";
+				 VALUES('".stripslashes($content)."', '$id', '$date', '$user_ID', '".stripslashes($subject)."')";
 			$wpdb->query($sql_post);
 		}
 		if(!$error){
@@ -85,17 +85,22 @@ if (file_exists($root.'/wp-load.php')) {
 			
 			$sql_post = "INSERT INTO $vasthtml->t_posts 
 						(text, parent_id, `date`, author_id, subject)
-				 VALUES('$content', '$thread', '$date', '$user_ID', '$subject')";
+				 VALUES('".stripslashes($content)."', '$thread', '$date', '$user_ID', '".stripslashes($subject)."')";
 			$wpdb->query($sql_post);
 			$wpdb->query("UPDATE $vasthtml->t_threads SET last_post = '$date' WHERE id = $thread");
 		}
 			
 		if(!$error){
-			$vasthtml->notify_starter($thread, $subject, $content, $date);
+			$vasthtml->notify_starter($thread, stripslashes($subject), stripslashes($content), $date);
+			$page = $_POST['add_topic_page'] ? $_POST['add_topic_page'] : 0;
+
+//			$count = $wpdb->get_var("SELECT count(*) FROM $vasthtml->t_posts WHERE parent_id = $thread");
+//			$page = ceil($count/$vasthtml->opt['forum_threads_per_page']);
+			
 			if ($options[forum_seo_urls]) {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread))); exit;
+				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread).".".$page)); exit;
 			} else {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;
+				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread).$page)); exit;
 			}
 		}
 		else	
@@ -118,14 +123,15 @@ if (file_exists($root.'/wp-load.php')) {
 			$msg .=  ("<div id='error'><p>".__("You must enter a message", "vasthtml")."</p></div>");
 			$error = true;
 		}
-		$sql = ("UPDATE $vasthtml->t_posts SET text = '$content', subject = '$subject' WHERE id = $edit_post_id");		
+		$sql = ("UPDATE $vasthtml->t_posts SET text = '".stripslashes($content)."', subject = '".stripslashes($subject)."' WHERE id = $edit_post_id");
 		$wpdb->query($sql);
 		
 		if(!$error){
+			$page = $_POST['edit_topic_page'] ? $_POST['edit_topic_page'] : 0;
 			if ($options[forum_seo_urls]) {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread))); exit;
+				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread).".".$page)); exit;
 			} else {
-				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread)."0")); exit;
+				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread).$page)); exit;
 			}
 		} else
 			wp_die($msg);

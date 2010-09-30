@@ -32,7 +32,9 @@ define("NEWTOPICS", "newtopics");
 define("NEWTOPIC", "newtopic");
 
 define("CAT", 	__("Category", "vasthtml"));
-define("FORUM", __("Forum", "vasthtml"));
+if (!defined('FORUM')) {
+	define("FORUM", __("Forum", "vasthtml"));
+}
 define("TOPIC", __("Topic", "vasthtml"));
 define("POST", 	__("Post", "vasthtml"));
 
