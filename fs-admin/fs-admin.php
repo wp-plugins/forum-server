@@ -77,6 +77,7 @@ switch($cur_tab){
 		}
 
 		function add_user_togroup(){
+
 			global $wpdb, $table_prefix, $vasthtml;
 			if(isset($_GET['do']) && $_GET['do'] == "add_user_togroup" && !isset($_POST['add_user_togroup'])){
 				include("wpf-addusers.php");
@@ -86,7 +87,8 @@ switch($cur_tab){
 			$errors = 0;
 			$added = 0;
 			if (isset($_POST['add_user_togroup'])){
-				$users = explode(",", $_POST['togroupusers']);
+//				$users = explode(",", $_POST['togroupusers']); // change textarea to multiselect with array of IDs
+				$users = $_POST['togroupusers'];
 
 				if($_POST['togroupusers'] == ""){
 					return __("You haven't specified any user to add:", "vasthtml");
@@ -95,6 +97,7 @@ switch($cur_tab){
 				if($group == "add_user_null")
 					return __("You must choose a user group", "vasthtml");
 
+				var_dump($users);
 				foreach($users as $user){
 					if($user){
 						trim($user);
@@ -524,50 +527,49 @@ $image = WPFURL."images/user.png";
 			$group_count = 0;
 			$forum_count = 0;
 
-			$groups = $_POST['delete_groups'];
-			$forums = $_POST['delete_forums'];
+			$groups = isset($_POST['delete_groups']) ? $_POST['delete_groups'] : false;
+			$forums = isset($_POST['delete_forums']) ? $_POST['delete_forums'] : false;
 
 			$forum_num = count($forums);
 			$group_num = count($groups);
 
 			// Delete marked groups
-			for($i = 0; $i < $group_num; $i++){
-
-				// Get all forums
-				$forums = $wpdb->get_results("select id from $table_forums where parent_id = {$groups[$i]}");
-
-				// Loop trough the forums
-				foreach($forums as $forum){
-
-					// Get all threads
-					$threads = $wpdb->get_results("select id from $table_threads where parent_id = $forum->id");
-
-					// Delete threads
-					$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = $forum->id");
-
-					// Loop through the threads
-					foreach($threads as $thread){
-
-						// Delete posts
-						$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
+			if (!empty($groups)) {
+				for ($i = 0; $i < $group_num; $i++) {
+					// Get all forums
+					$forums = $wpdb->get_results("select id from $table_forums where parent_id = {$groups[$i]}");
+					// Loop trough the forums
+					foreach($forums as $forum){
+						// Get all threads
+						$threads = $wpdb->get_results("select id from $table_threads where parent_id = $forum->id");
+						// Delete threads
+						$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = $forum->id");
+						// Loop through the threads
+						foreach($threads as $thread){
+							// Delete posts
+							$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
+						}
+						// Delete forums
+						$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE parent_id = {$groups[$i]}");
 					}
-					// Delete forums
-					$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE parent_id = {$groups[$i]}");
+					// Delete the group
+					$group_count += $wpdb->query("DELETE FROM $table_groups WHERE id = {$groups[$i]}");
 				}
-				// Delete the group
-				$group_count += $wpdb->query("DELETE FROM $table_groups WHERE id = {$groups[$i]}");
 			}
 			// Delete marked forums
-			for($i = 0; $i < $forum_num; $i++){
-				$threads = $wpdb->get_results("select id from $table_threads where parent_id = {$forums[$i]->id}");
-				foreach($threads as $thread){
+			if (!empty($forums)) {
+				for ($i = 0; $i < $forum_num; $i++) {
+					$parent_id = is_object($forums[$i]) ? $forums[$i]->id : $forums[$i];
 
-					$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
+					$threads = $wpdb->get_results("select id from $table_threads where parent_id = ".$parent_id);
+
+					foreach($threads as $thread){
+						$post_count += $wpdb->query("DELETE FROM $table_posts WHERE parent_id = $thread->id");
+					}
+
+					$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = ".$parent_id);
+					$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE id = ".$parent_id);
 				}
-				$thread_count += $wpdb->query("DELETE FROM $table_threads WHERE parent_id = {$forums[$i]->id}");
-
-
-				$forum_count += $wpdb->query("DELETE FROM $table_forums WHERE id = {$forums[$i]->id}");
 			}
 			$msg .=  __("Groups deleted:", "vasthtml")." ".$group_count."<br/>"
 					.__("Forums deleted:", "vasthtml")." ".$forum_count."<br/>"
@@ -730,6 +732,7 @@ function structure(){
 
 }
 	function move_up_down(){
+		$msg = false;
 		if(isset($_GET['do'])){
 		global $wpdb, $table_prefix;
 			switch($_GET['do']){
@@ -834,6 +837,7 @@ function structure(){
 				$user_id = $_POST['addmod_user_id'];
 				$mod_forum_id = $_POST['mod_forum_id'];
 				$global = $_POST['mod_global'];
+
 				if($user_id == "add_mod_null")
 					return __("You must select a user", "vasthtml");
 

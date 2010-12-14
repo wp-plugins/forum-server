@@ -11,4 +11,3 @@ class  vasthtmladmin_pro{
 	}
 }
 ?>
-

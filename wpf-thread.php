@@ -1,5 +1,10 @@
 <?php
-	global $vasthtml;
+	global $vasthtml, $forum_instance;
+
+	if (!empty($forum_instance) && $forum_instance === true) {
+		return false;
+	}
+	
 	if($user_ID || $this->allow_unreg()){
 	$options = get_option("vasthtml_options");
 	$this->current_view = NEWTOPIC;

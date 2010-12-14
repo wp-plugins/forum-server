@@ -5,8 +5,8 @@ Donate link: http://vasthtml.com/
 Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
-Tested up to: 3.0.1
-Stable tag: 1.6.3
+Tested up to: 3.0.3
+Stable tag: 1.6.4
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -78,15 +78,24 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.4 =
+* Fixed bug: duplicate topic forms
+* Fixed bug: default encoding in database tables changed to UTF-8
+* Fixed bug: parsing '$' character
+* Fixed bug: width for posts with embedded video or code listings
+* Fixed bug: login form when wordpress is installed in it's own directory (not in root folder)
+* Fixed bug: 'show new posts since last visit' feature
+* Fixed bug: links to posts in RSS feed
+* Fixed bug: database error when deleting forum
+* Fixed bug: interface of adding users to users' groups
 = 1.6.3 =
-* Fixed bug: "My hot topics" icon fixed
-* Fixed bug: "Minimize forum header" button fixed
-* Fixed bug: Topics are now deleted when the only post in them is deleted
-* Fixed bug: All category content is now deleted when a category is deleted
-* Fixed bug: Wrong redirect after posting in topic on any, but first page
-* Fixed bug: Checking user_level when using "sticky post" function
-* Fixed bug: Forum related errors (undefined variables) with debug-mode enabled
-* Translations: Added translation support for several strings of text in code
+* Fixed bug: Fix icon for my hot topics
+* Fixed bug: Fix minimize forum header button
+* Fixed bug: Fix deleting single post in topic
+* Fixed bug: Fix deleting category when there's some topics in it
+* Fixed bug: Fix redirect after posting in topic on non first page
+* Fixed bug: Fix checking user_level for sticky post function
+* Fixed forum related errors (undefined variables) with debug-mode enabled
 = 1.6.2 =
 * Fixed bug: Incorrect formatting in replies subject for topics and posts containing apostrophes
 * Fixed bug: Disallow ability to modify guest posts by other guests

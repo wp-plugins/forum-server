@@ -27,6 +27,10 @@ padding: 0px, 0px, 0px, 0px;
 	color: #d54e21;
 }
 
+#wpcontent select.userselect {
+	height: 10em;
+}
+
 table.wpf-wide{
 	width: 100%;
 	border: none;

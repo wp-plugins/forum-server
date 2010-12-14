@@ -68,6 +68,7 @@ if (file_exists($root.'/wp-load.php')) {
 	if(isset($_POST['add_post_submit'])){
 		$subject = $vasthtml->input_filter($_POST['add_post_subject']);
 		$content = $vasthtml->input_filter($_POST['message']);
+		
 		$thread = $vasthtml->check_parms($_POST['add_post_forumid']);
 		
 		if($subject == ""){
@@ -88,15 +89,17 @@ if (file_exists($root.'/wp-load.php')) {
 				 VALUES('".stripslashes($content)."', '$thread', '$date', '$user_ID', '".stripslashes($subject)."')";
 			$wpdb->query($sql_post);
 			$wpdb->query("UPDATE $vasthtml->t_threads SET last_post = '$date' WHERE id = $thread");
+			
 		}
 			
 		if(!$error){
 			$vasthtml->notify_starter($thread, stripslashes($subject), stripslashes($content), $date);
 			$page = $_POST['add_topic_page'] ? $_POST['add_topic_page'] : 0;
 
-//			$count = $wpdb->get_var("SELECT count(*) FROM $vasthtml->t_posts WHERE parent_id = $thread");
-//			$page = ceil($count/$vasthtml->opt['forum_threads_per_page']);
+			$count = $wpdb->get_var("SELECT count(*) FROM $vasthtml->t_posts WHERE parent_id = $thread");
+			$page = floor(($count-1)/$vasthtml->opt['forum_posts_per_page']);
 			
+
 			if ($options[forum_seo_urls]) {
 				header("Location: ".html_entity_decode($vasthtml->get_threadlink($thread).".".$page)); exit;
 			} else {

@@ -6,7 +6,6 @@ include("wpf_define.php");
 include("wpf_pro.php");
 
 require_once( 'bbcode.php' );
-//require_once( 'BBCodeParser/BBCodeParser.php' );
 @ob_start();
 
 if(!class_exists('vasthtml')){
@@ -18,17 +17,29 @@ class vasthtml extends vasthtml_pro{
 		add_action("admin_head", array(&$this, "admin_header"));
 		add_action("wp_head", array(&$this, "setup_header"));
 		add_action("plugins_loaded", array(&$this, "load_wpf_posts_widget"));
+		add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
 		add_action("wp_footer", array(&$this, "wpf_footer"));
-
-//		add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
-//		add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
-//		add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
-//		add_filter("init", array(&$this, "do_flush_rules"));
 
 		$this->init();
 
 	}
 
+	
+        function callback($buffer) {
+        // modify buffer here, and then return the updated code
+        
+        	
+        return '';
+        }
+         
+        function buffer_start() {
+        ob_start(array($this,"go"));
+        }
+         
+       function buffer_end() {
+       ob_end_flush();
+       }
+	
 	// !Member variables
 	var $table_prefix 	= "";
 	var $page_id		= "";
@@ -73,7 +84,7 @@ class vasthtml extends vasthtml_pro{
 		global $table_prefix, $user_ID;
 
 		$this->page_id			= $this->get_pageid();
-		$this->path 			= get_bloginfo('wpurl');
+		$this->path 			= get_bloginfo('wpurl');		
 		$this->reg_link 		= $this->path."/wp-register.php?redirect_to=";
 		$this->login_link 		= $this->path."/wp-login.php?redirect_to=".PHP_SELF."";
 		$this->profile_link 	= $this->path."/wp-admin/profile.php";
@@ -325,6 +336,16 @@ class vasthtml extends vasthtml_pro{
 			return $this->thread_link.$id.".$this->curr_page";
 		}
 	}
+	function get_rss_threadlink($id){
+		if ($this->opt['forum_seo_urls']) {
+			$g = $this->check_subject($this->get_groupname($this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $id)))."-g".$this->get_parent_id(FORUM, $this->get_parent_id(THREAD, $id)));
+			$f = $this->check_subject($this->get_forumname($this->get_parent_id(THREAD, $id))."-f".$this->get_parent_id(THREAD, $id));
+			$t = $this->check_subject($this->get_subject($id)."-t".$id);
+			return rtrim($this->home_url, "/")."/".$g."/".$f."/".$t;
+		} else {
+			return $this->thread_link.$id;
+		}
+	}
 
 	function get_pageid(){
 		global $wpdb;
@@ -349,8 +370,8 @@ class vasthtml extends vasthtml_pro{
 	function get_threads($id = ''){
 		global $wpdb;
 
-		$start = $this->curr_page*$this->opt['forum_posts_per_page'];
-		$end = $this->opt['forum_posts_per_page'];
+		$start = $this->curr_page*$this->opt['forum_threads_per_page'];
+		$end = $this->opt['forum_threads_per_page'];
 		$limit = "$start, $end";
 
 		if($id){
@@ -442,6 +463,8 @@ class vasthtml extends vasthtml_pro{
 		$start_time = microtime(true);
 		global $user_ID, $forum_instance;
 
+		
+		
 		if(!preg_match('|<!--VASTHTML-->|', $content) && !preg_match('|\[forumServer\]|', $content))
 			return $content;
 
@@ -470,7 +493,12 @@ class vasthtml extends vasthtml_pro{
 				} elseif (isset($_GET['remove_post'])) {
 					$this->current_view = THREAD;
 					$this->showforum($this->check_parms($_GET['t']));
-				} else {
+				}elseif (isset($_GET['set_post_reputation'])){
+					
+					$this->current_view = THREAD;
+					$this->showforum($this->check_parms($_GET['t']));
+					
+				}else {
 					switch($action) {
 						case 'vforum':
 							$goto = $this->get_grouplink($this->check_parms($_GET['g']));
@@ -554,12 +582,25 @@ class vasthtml extends vasthtml_pro{
 		}
 		$forum_instance = true;
 		$result = '';
-		if(preg_match('|\[forumServer\]|', $content) ) {
-			return preg_replace('|\[forumServer\]|', "<div id='wpf-wrapper'>".$this->o."</div>", $content, 1);
+		
+		if (strpos($content, '[forumServer]') !== false) {
+			
+			return substr_replace($content,  "<div id='wpf-wrapper'>".$this->o."</div>", strpos($content, '[forumServer]'), 13);
+			
+			//return str_replace('[forumServer]',  "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+		} else if(strpos($content, '<!--VASTHTML-->') !== false) {
+			return substr_replace($content,  "<div id='wpf-wrapper'>".$this->o."</div>", strpos($content, '<!--VASTHTML-->'), 15);
+			
+			//return str_replace('<!--VASTHTML-->',  "<div id='wpf-wrapper'>".$this->o."</div>", $content);
+			
+		}
+		
+	/*	if(preg_match('|\[forumServer\]|', $content) ) {
+			return preg_replace('|\[forumServer\]|',"<div id='wpf-wrapper'>".$this->o."</div>", $content, 1);
 
 		} else {
 			return preg_replace('|<!--VASTHTML-->|', "<div id='wpf-wrapper'>".$this->o."</div>", $content, 1);
-		}
+		}*/
 
 	}
 	function get_version(){
@@ -691,6 +732,7 @@ class vasthtml extends vasthtml_pro{
 
 				echo '</pre>';
 				$alt = '';
+
 				foreach($threads as $thread){
 					$alt=($alt=="alt even")?"odd":"alt even";
 					if($user_ID){
@@ -763,6 +805,12 @@ class vasthtml extends vasthtml_pro{
 
 		if(isset($_GET['remove_post']))
 			$this->remove_post();
+			
+		if(isset($_GET['set_post_reputation']) && method_exists($this, set_post_reputation)) {
+		$post_id = $_GET['id'];	
+		$value = $_GET['set_post_reputation'] > 0 ? 1 : -1;
+			$this->set_post_reputation($post_id, $value);	
+		}
 
 		if(isset($_GET['sticky']))
 			$this->sticky_post();
@@ -831,9 +879,16 @@ class vasthtml extends vasthtml_pro{
 										if($this->opt["forum_use_gravatar"])
 											$out .= $this->get_avatar($post->author_id);
 									}
-
+							//remove_filter('comment_text', 'wpautop');
 							$txt = apply_filters('comment_text', $this->output_filter($post->text));
-							$txt = preg_replace("/<\/p>/", "</p><br \/>", $txt);
+							
+							
+							$txt = $this->my_nl2br($txt);
+							
+							if (method_exists($this, 'get_post_reputation')) {
+								$out .= $this->get_post_reputation($post->id, $post->author_id);
+							}
+							
 							$out .= "</div></td>
 
 							<td valign='top'>
@@ -844,6 +899,7 @@ class vasthtml extends vasthtml_pro{
 									<tr>
 										<td valign='top' colspan='2' class='topic_text'>".$txt."</td>
 									</tr>";
+							
 									if($user->description){
 										$out .= "<tr><td class='user_desc'><small>".apply_filters('comment_text', $this->output_filter($user->description))."</small></td></tr>";
 									}
@@ -860,13 +916,29 @@ class vasthtml extends vasthtml_pro{
 						</tr>
 					</table>";
 
+			if (method_exists($this, 'quick_reply')) {
+			
+				$out .= $this->quick_reply($thread_id);
+			}
+			
 			$this->o .= $out;
 
 			$this->footer();
 		}
 	}
 
-
+	function my_nl2br($string){
+		$string = str_replace("\n", "<br />", $string);
+		if(preg_match_all('/\<pre\>(.*?)\<\/pre\>/', $string, $match)){
+			foreach($match as $a){
+				foreach($a as $b){
+				$string = str_replace('<pre>'.$b.'</pre>', "<pre>".str_replace("<br />", "", $b)."</pre>", $string);
+				}
+			}
+		}
+		return $string;
+	}
+	
  	function get_postmeta($post_id, $author_id){
 	global $user_ID;
 		$image = "<span class='xx'></span>";
@@ -982,7 +1054,11 @@ class vasthtml extends vasthtml_pro{
 
 	}
 	function vforum($groupid){
-		global $user_ID;
+		global $user_ID, $forum_instance;;
+
+		if (!empty($forum_instance) && $forum_instance === true) {
+			return false;
+		}
 
 //<a name='$g->id' href='http://mac/smf/index.php?action=collapse;c=1;sa=collapse;#1'>General Category</a>"
 
@@ -1051,16 +1127,18 @@ class vasthtml extends vasthtml_pro{
 
 	}
 	// TODO
-	function output_filter($string){
-
+	function output_filter($string){		
 		return stripslashes(PP_BBCode($string));
 	}
 	function input_filter($string){
 		global $wpdb;
 		$obj_pattern = '/^<object.*/';
+		$width_pattern = '/width=\\\"\d+\\\"/';
+
 		if (preg_match($obj_pattern, $string) === 0) {
-			return wp_specialchars($wpdb->escape($string));
+			return esc_html($wpdb->escape($string));
 		} else {
+			$string = preg_replace($width_pattern, 'width="400"', $string);
 			return $wpdb->escape($string);
 		}
 	}
@@ -1311,7 +1389,8 @@ class vasthtml extends vasthtml_pro{
 		$table_captcha = $table_prefix."forum_captcha";
 		$table_usergroup2user = $table_prefix."forum_usergroup2user";
 		$table_usergroups = $table_prefix."forum_usergroups";
-
+		
+		
 		get_currentuserinfo();
 
 
@@ -1388,6 +1467,12 @@ class vasthtml extends vasthtml_pro{
 				  PRIMARY KEY  (`id`)
 				)DEFAULT CHARACTER SET = utf8;";
 
+			
+						
+			
+			
+			
+			
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
 			dbDelta($sql1);
@@ -1425,6 +1510,45 @@ class vasthtml extends vasthtml_pro{
 			$wpdb->query($xyquery8);
 			drop_index($table_threads, 'subject');
 			$wpdb->query($xyquery9);
+
+			//1.6.3 - pro
+			$table_reputation_posts = $table_prefix."forum_reputation_posts";
+			
+			$sql8 = "
+			CREATE TABLE ". $table_reputation_posts." (
+			  id int(11) NOT NULL auto_increment,
+			  author_id int(11) NOT NULL default '0',
+ 			  post_id int(11) NOT NULL default '0',
+			  post_author_id int(11) NOT NULL default '0',
+			  value int(11) NOT NULL default '0',
+			  `date` datetime NOT NULL default '0000-00-00 00:00:00',
+			  PRIMARY KEY  (id)
+			) DEFAULT CHARACTER SET = utf8;";
+			dbDelta($sql8);
+	
+
+			
+		$wpdb->query("ALTER TABLE $table_threads CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_threads DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+			
+		$wpdb->query("ALTER TABLE $table_posts CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_posts DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
+		$wpdb->query("ALTER TABLE $table_forums CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_forums DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
+		$wpdb->query("ALTER TABLE $table_groups CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_groups DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
+		$wpdb->query("ALTER TABLE $table_reputation_posts CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_reputation_posts DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
+		$wpdb->query("ALTER TABLE $table_usergroup2user CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_usergroup2user DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
+		$wpdb->query("ALTER TABLE $table_usergroups CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		$wpdb->query("ALTER TABLE $table_usergroups DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+		
 
 
 			$this->convert_moderators();
@@ -1612,7 +1736,7 @@ $menu .= "<td valign='top' class='menu_sub'>{$menuitems['home']}</td>";
 			$user = get_userdata($user_ID);
 
 			if(!is_user_logged_in()){
-				return "<form action='".get_bloginfo('url')."/wp-login.php' method='post'>
+				return "<form action='".get_bloginfo('wpurl')."/wp-login.php' method='post'>
 					<p>
 					<label for='log'>".__("Username: ", "vasthtml")."<input type='text' name='log' id='log' value='".wp_specialchars(stripslashes($user_login), 1)."' size='12' /> </label>
 					<label for='pwd'>".__("Password: ", "vasthtml")."<input type='password' name='pwd' id='pwd' size='12' />
@@ -1690,7 +1814,11 @@ function forum_get_group_from_post($thread_id){
 		$this->setup_links();
 
 		$trail = "<a href='".get_permalink($this->page_id)."'>Forum</a>";
-
+		$rss = $this->current_group ? '' : "<a class='ico_feed' href='$this->global_feed_url' title='RSS'>RSS</a>";
+		
+		
+		
+		
 		if($this->current_group)
 			if ($this->opt['forum_seo_urls']) {
 				$g = $this->check_subject($this->get_groupname($this->current_group))."-g".$this->current_group;
@@ -1735,7 +1863,7 @@ function forum_get_group_from_post($thread_id){
 		if($this->current_view == NEWTOPIC)
 			$trail .= " <strong>&raquo;</strong> ".__("New Topic", "vasthtml") ;
 
-		return "<p id='trail' class='breadcrumbs'>$trail</p>";
+		return "<p id='trail' class='breadcrumbs'>$trail $rss</p>";
 
 	}
 
@@ -1763,6 +1891,12 @@ function forum_get_group_from_post($thread_id){
 		}
 		if($user_ID)
 			setcookie("wpfsession", time(), 0, "/");
+	}
+
+	function unset_cookie(){
+		global $user_ID;
+
+		update_usermeta( $user_ID, 'lastvisit', time() );
 	}
 
 	function get_avatar($user_id, $size = 60){
@@ -1838,7 +1972,7 @@ function forum_get_group_from_post($thread_id){
 		$out = '';
 		$pages = $wpdb->get_results("SELECT * FROM $this->t_posts WHERE parent_id = $thread_id");
 
-		if(count($pages) > $this->opt['forum_posts_per_page']){
+		if(count($pages) > $this->opt['forum_posts_per_page']) {
 			$num_pages = ceil(count($pages)/$this->opt['forum_posts_per_page']);
 
 			for($i = 0; $i < $num_pages; ++$i){
@@ -1878,9 +2012,11 @@ function forum_get_group_from_post($thread_id){
 		$out = '';
 		$out .= __("Pages:", "vasthtml");
 
-		$count = $wpdb->get_var("SELECT count(*) FROM $this->t_threads WHERE parent_id = $forum_id");
+		$count = $wpdb->get_var("SELECT count(*) FROM $this->t_threads WHERE parent_id = $forum_id AND status <> 'sticky'");
+		if ($count < 1)
+			$count = 1;
+		
 		$num_pages = ceil($count/$this->opt['forum_threads_per_page']);
-
 
 		for($i = 0; $i < $num_pages; ++$i){
 			if($i ==  $this->curr_page)
@@ -2183,10 +2319,10 @@ function forum_get_group_from_post($thread_id){
 
 		//$posts = $wpdb->get_results("SELECT * FROM $this->t_posts WHERE `date` > '$lastvisit' ORDER BY `date` DESC");
 
-
+		
 		//$posts = $wpdb->get_results("select $this->t_posts.id as postid, $this->t_posts.date, $this->t_posts.author_id, $this->t_threads.starter, $this->t_threads.views, $this->t_threads.subject, $this->t_threads.id as threadid from $this->t_posts inner join $this->t_threads on $this->t_posts.parent_id = $this->t_threads.id where $this->t_posts.date > '$lastvisit' order by $this->t_posts.date desc");
 		$threads = $wpdb->get_results("select distinct($this->t_threads.id) from $this->t_posts inner join $this->t_threads on $this->t_posts.parent_id = $this->t_threads.id where $this->t_posts.date > '$lastvisit' order by $this->t_posts.date desc");
-
+		//var_dump($wpdb->last_query);
 
 			$o .= "<div class='wpf'><table class='wpf-table' cellpadding='0' cellspacing='0'>
 							<tr>

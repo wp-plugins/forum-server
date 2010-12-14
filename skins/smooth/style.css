@@ -319,3 +319,19 @@ span.hot_post {
     width:16px;
     height:15px;
 }
+
+/* latest activity widget */
+#latest_activity ul li {
+	margin-top: 7px;
+	margin-bottom: 7px;
+}
+
+
+
+#trail a.ico_feed {
+	background-image:url("images/icons/feed_16.png");
+	width:16px;
+	height:16px;
+	float: right;
+	text-indent: -999em;
+}
