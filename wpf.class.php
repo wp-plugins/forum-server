@@ -16,8 +16,12 @@ class vasthtml extends vasthtml_pro{
 		add_action("admin_menu", array(&$this,"add_admin_pages"));
 		add_action("admin_head", array(&$this, "admin_header"));
 		add_action("wp_head", array(&$this, "setup_header"));
-		add_action("plugins_loaded", array(&$this, "load_wpf_posts_widget"));
-		add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
+		if (method_exists($this, 'load_wpf_posts_widget')) {
+			add_action("plugins_loaded", array(&$this, "load_wpf_posts_widget"));
+		}
+		if (method_exists($this, 'load_wpf_topics_widget')) {
+			add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
+		}
 		add_action("wp_footer", array(&$this, "wpf_footer"));
 
 		$this->init();
@@ -25,20 +29,19 @@ class vasthtml extends vasthtml_pro{
 	}
 
 	
-        function callback($buffer) {
+	function callback($buffer) {
         // modify buffer here, and then return the updated code
-        
-        	
+            	
         return '';
-        }
+	}
          
-        function buffer_start() {
-        ob_start(array($this,"go"));
-        }
+	function buffer_start() {
+		ob_start(array($this,"go"));
+	}
          
-       function buffer_end() {
-       ob_end_flush();
-       }
+	function buffer_end() {
+		ob_end_flush();
+	}
 	
 	// !Member variables
 	var $table_prefix 	= "";
