@@ -6,6 +6,12 @@
  */
 
 class vasthtml_pro {
-	
+
+	function vasthtml_pro() {
+
+	}
+	function load_wpf_topics_widget() {
+		
+	}
 }
 ?>
