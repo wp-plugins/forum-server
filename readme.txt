@@ -6,7 +6,7 @@ Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.0.3
-Stable tag: 1.6.4
+Stable tag: 1.6.5
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -78,6 +78,8 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.5 =
+* Fixed bug: warning php message
 = 1.6.4 =
 * Fixed bug: duplicate topic forms
 * Fixed bug: default encoding in database tables changed to UTF-8
