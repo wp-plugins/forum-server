@@ -5,7 +5,7 @@ Donate link: http://vasthtml.com/
 Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
-Tested up to: 3.0.3
+Tested up to: 3.0.4
 Stable tag: 1.6.5
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
