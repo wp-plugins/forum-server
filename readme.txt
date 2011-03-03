@@ -18,11 +18,11 @@ The forum is a plugin, so no additional work is needed to integrate it into your
 WP Forum Server is a an advanced, stable fork of WP Forum.
 
 If there are any problems installing this plugin
-please visit the site at http://vasthtml.com/js/wordpress-forum-server/
+please visit the site at http://forumpress.org/
 and download the plugin from there.
 
 If you want to show off your forum please
-visit: http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
+visit: http://forumpress.org/support/forumpress-g5/forum-server-1.4-and-previous-archive-f19
 and leave a link to your site.
 
 
@@ -35,21 +35,21 @@ This section describes how to install the plugin and get it working.
 3. Make a new page to place your forum into. Make sure you have it on the `HTML` editor.
 4. Simply place the tag `<!--VASTHTML-->` or `[forumServer]` in the new page content area.
 
-Please visit http://vasthtml.com/js/wordpress-forum-server/ for usage instructions.
-Complete Installation Instructions: http://vasthtml.com/item-readme/forum-server/
-For a complete demo visit http://vasthtml.com/support/
+Please visit http://forumpress.org/ for usage instructions.
+Complete Installation Instructions: http://forumpress.org/installation-setup
+For a complete demo visit http://forumpress.org/support/
 
 == Frequently Asked Questions ==
 
 = Do you have a demo? =
-Yes- it's located here: http://vasthtml.com/support/
+Yes- it's located here: http://forumpress.org/support
 
 = The file from Wordpress.org does not work =
-Go to http://vasthtml.com/js/wordpress-forum-server/
+Go to http://forumpress.org/
 and download from there.
 
 = Is there a gallery i can see other people using the plugin? =
-http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
+http://forumpress.org/support/forumpress-g5/forum-server-1.4-and-previous-archive-f19
 
 = How do I translate interface in another language? =
 To make a translation of any wp plugin use this plugin
