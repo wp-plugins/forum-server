@@ -53,3 +53,9 @@ p.wpf-alignright{
 p.wpf-bordertop{
 	border-top: 1px solid #ccc; padding-top:5px;
 }
+.lang_descr .item_descr {
+	display: none;
+}
+.lang_descr div.active {
+	display: block;
+}

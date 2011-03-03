@@ -1,27 +1,27 @@
 ===WP Forum Server ===
 Author: VastHTML
-Author URI: http://lucidcrew.com/
-Donate link: http://vasthtml.com/
-Plugin URI: http://vasthtml.com/js/wordpress-forum-server/
+Author URI: http://forumpress.org/
+Donate link: http://forumpress.org/
+Plugin URI: http://forumpress.org/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
-Tested up to: 3.0.4
-Stable tag: 1.6.5
+Tested up to: 3.1
+Stable tag: 1.6.6
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
 == Description ==
 
-WP Forum Server : A complete forum system for your wordpress blog. 
+WP Forum Server : A complete forum system for your wordpress blog.
 The forum is a plugin, so no additional work is needed to integrate it into your site.
 
 WP Forum Server is a an advanced, stable fork of WP Forum.
 
-If there are any problems installing this plugin 
+If there are any problems installing this plugin
 please visit the site at http://vasthtml.com/js/wordpress-forum-server/
 and download the plugin from there.
 
-If you want to show off your forum please 
+If you want to show off your forum please
 visit: http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
 and leave a link to your site.
 
@@ -41,17 +41,17 @@ For a complete demo visit http://vasthtml.com/support/
 
 == Frequently Asked Questions ==
 
-= Do you have a demo? = 
+= Do you have a demo? =
 Yes- it's located here: http://vasthtml.com/support/
 
-= The file from Wordpress.org does not work = 
+= The file from Wordpress.org does not work =
 Go to http://vasthtml.com/js/wordpress-forum-server/
 and download from there.
 
-= Is there a gallery i can see other people using the plugin? = 
-http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0 
+= Is there a gallery i can see other people using the plugin? =
+http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=24.0
 
-= How do I translate interface in another language? = 
+= How do I translate interface in another language? =
 To make a translation of any wp plugin use this plugin
 http://wordpress.org/extend/plugins/codestyling-localization/
 
@@ -64,10 +64,10 @@ When the .mo and .po files are ready:
 //load_textdomain("vasthtml", ABSPATH.'wp-content/plugins/'. $plugin_dir.'/'.'vasthtml-en_EN.mo');
 (change "en_EN" to your locale descriptor.
 
-= May I recommend some new features? = 
+= May I recommend some new features? =
 Yes please do. http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=20.0
 
-= Where can I get support? = 
+= Where can I get support? =
 In the support forums on Vast HTML: http://vasthtml.com/support/
 
 
@@ -78,6 +78,11 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.6 =
+* Fixed major security bug with RSS feed
+* Fixed BBCodes php errors on some of installation
+* Names of users on forum now displays the same as throughout wordpress ( using 'Display name' instead of 'user name' )
+* Improved usabiity of changing languages. Now available through wordpress admin panel in a simple way
 = 1.6.5 =
 * Fixed bug: warning php message
 = 1.6.4 =

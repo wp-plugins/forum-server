@@ -6,7 +6,7 @@ class vasthtmladmin extends vasthtmladmin_pro{
 		var $admin_tabs = array();
 		var $cur_tab = "";
 
-		function vasthtmladmin(){
+		function vasthtmladmin(){			
 			$this->admin_page();
 		}
 		function output_filter($string){
@@ -466,10 +466,36 @@ $image = WPFURL."images/user.png";
 			echo "<tr class='alternate'>
 				<td>".__("Use Captcha for unregistered users:", "vasthtml")."</td>
 			  	<td><input type='checkbox' name='forum_captcha' value='true' $status";
-			 if($op['forum_captcha'] == 'true')
-				echo "checked='checked'";
+			if($op['forum_captcha'] == 'true') echo "checked='checked'";
 			echo "/> (Requires <a href='http://www.libgd.org/Main_Page'>GD</a> library) $lib</td>
-			</tr>";
+				</tr>";
+
+			// languages option
+			$langs = $vasthtml->get_langs();
+			$langs_description = '';
+			$active_description = '';
+
+			echo "<tr class='alternate'>
+				<td>".__("Language:", "vasthtml")."</td>
+			  	<td><select name='forum_lang' id='forum_lang'>";
+			// default lang field
+			$lang_default = $op['forum_lang'] == 'en_US' ? "selected='selected'" : "";
+			// build list of avvailable langs
+			echo "<option {$lang_default} value='en_US'>en_US</option>";
+				foreach($langs as $labbr => $item) {
+					echo "<option ";
+					if ($labbr == $op['forum_lang']) {
+						echo "selected='selected' ";
+						$active_description = 'active';
+					}
+					echo "value='".$labbr."'>".$labbr."</option>";
+					$langs_description .= isset($item['info']) && !empty($item['info']) 
+						? '<div id="'.$labbr.'_descr" class="item_descr '.$active_description.'"><span>'.implode('</span><br />', $item['info']).'</span></div>'
+						: '';
+				}
+			echo "</select> (default = en_US)
+				<div class='lang_descr'>{$langs_description}</div></td>
+				</tr>";
 
 			echo "<tr class='alternate'>
 				<td valign='top'>".__("Date format:", "vasthtml")."</td><td><input type='text' name='forum_date_format' value='".$op['forum_date_format']."'  /> <p>".__("Default date:", "vasthtml")." \"F j, Y, H:i\". <br />Check <a href='http://www.php.net'>http://www.php.net</a> for date formatting.</p></td>
@@ -480,7 +506,15 @@ $image = WPFURL."images/user.png";
 			<span class='button' style='float:right'><a href='http://vasthtml.com' target='_blank'>Vast HTML</a></span>
 		</tr>
 		</table>
-
+		<script type='text/javascript'>
+			jQuery(document).ready(function(){
+				jQuery('#forum_lang').bind('change', function(e){
+					var s = jQuery(e.target);
+					jQuery('.lang_descr div.item_descr').removeClass('active').hide();
+					jQuery('#'+$(s).val()+'_descr').addClass('active').show();
+				});
+			});
+		</script>
 		</form>";
 
 		}
@@ -502,8 +536,9 @@ $image = WPFURL."images/user.png";
 								'forum_captcha' 				=> $_POST['forum_captcha'],
 								'hot_topic' 					=> $_POST['hot_topic'],
 								'veryhot_topic' 				=> $_POST['veryhot_topic'],
-								'forum_seo_urls' 				=> $_POST['forum_seo_urls']
-								);
+								'forum_seo_urls' 				=> $_POST['forum_seo_urls'],
+								'forum_lang'	 				=> $_POST['forum_lang']
+				);
 
 				update_option('vasthtml_options', $options);
 

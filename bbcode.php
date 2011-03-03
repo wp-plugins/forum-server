@@ -1,6 +1,6 @@
 <?php
 /*
-	modified bbcode plugin for WP-Froum, just tagged ff_ and PP_ on stuff
+	modified bbcode plugin for WP-Froum, just tagged ff_ and FS_ on stuff
 	so as to not have any issues with the official plugin
 */
 /*
@@ -16,8 +16,8 @@ Author URI: http://www.procata.com/blog/
 // (original author Stijn de Reede <sjr@gmx.co.uk>).
 // http://pear.php.net/package/HTML_BBCodeParser/docs
 
-if (!defined('PP_CUSTOM_TAGS')) {
-    define('PP_CUSTOM_TAGS', TRUE);
+if (!defined('FS_CUSTOM_TAGS')) {
+    define('FS_CUSTOM_TAGS', TRUE);
 }
         
 $ff_allowedtags = array(
@@ -47,7 +47,8 @@ $ff_allowedtags = array(
                 );
 
 
-class PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser')){
+class FS_HTML_BBCodeParser
 {
 
     /**
@@ -116,11 +117,11 @@ class PP_HTML_BBCodeParser
     * Constructor, initialises the options and filters
     *
     * Sets the private variable _options with base options defined with
-    * &PP_HTML_BBCodeParser::getStaticProperty(), overwriting them with (if present)
+    * &FS_HTML_BBCodeParser::getStaticProperty(), overwriting them with (if present)
     * the argument to this method.
     * Then it sets the extra options to properly escape the tag
     * characters in preg_replace() etc. The set options are
-    * then stored back with &PP_HTML_BBCodeParser::getStaticProperty(), so that the filter
+    * then stored back with &FS_HTML_BBCodeParser::getStaticProperty(), so that the filter
     * classes can use them.
     * All the filters in the options are initialised and their defined tags
     * are copied into the private variable _definedTags.
@@ -130,11 +131,11 @@ class PP_HTML_BBCodeParser
     * @access   public
     * @author   Stijn de Reede  <sjr@gmx.co.uk>
     */
-    function PP_HTML_BBCodeParser($options = array())
+    function FS_HTML_BBCodeParser($options = array())
     {
 
         /* set the already set options */
-        $baseoptions = &PP_HTML_BBCodeParser::getStaticProperty('PP_HTML_BBCodeParser', '_options');
+        $baseoptions = &FS_HTML_BBCodeParser::getStaticProperty('FS_HTML_BBCodeParser', '_options');
         if (is_array($baseoptions)) {
             foreach ($baseoptions as  $k => $v)  {
                 $this->_options[$k] = $v;
@@ -164,12 +165,12 @@ class PP_HTML_BBCodeParser
         unset($baseoptions);
         
         /* return if this is a subclass */
-        if (is_subclass_of($this, 'PP_HTML_BBCodeParser')) return;
+        if (is_subclass_of($this, 'FS_HTML_BBCodeParser')) return;
 
         /* extract the definedTags from subclasses */
         $filters = explode(',', $this->_options['filters']);
         foreach ($filters as $filter) {
-            $class = 'PP_HTML_BBCodeParser_Filter_'.$filter;
+            $class = 'FS_HTML_BBCodeParser_Filter_'.$filter;
             $this->_filters[$filter] =& new $class;
             $this->_definedTags = array_merge($this->_definedTags, $this->_filters[$filter]->_definedTags);
         }
@@ -203,7 +204,7 @@ class PP_HTML_BBCodeParser
         $this->_preparsed = $this->_text;
 
         /* return if this is a subclass */
-        if (is_subclass_of($this, 'PP_HTML_BBCodeParser')) return;
+        if (is_subclass_of($this, 'FS_HTML_BBCodeParser')) return;
 
         /* walk through the filters and execute _preparse */
         foreach ($this->_filters as $filter) {
@@ -651,7 +652,7 @@ class PP_HTML_BBCodeParser
     */
     function staticQparse($str)
     {
-        $p = new PP_HTML_BBCodeParser();
+        $p = new FS_HTML_BBCodeParser();
         $str = $p->qparse($str);
         unset($p);
         return $str;
@@ -659,8 +660,10 @@ class PP_HTML_BBCodeParser
 
 
 }
+}
 
-class PP_HTML_BBCodeParser_Filter_Links extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Links')){
+class FS_HTML_BBCodeParser_Filter_Links extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -696,7 +699,7 @@ class PP_HTML_BBCodeParser_Filter_Links extends PP_HTML_BBCodeParser
     */
     function _preparse()
     {
-        $options = PP_HTML_BBCodeParser::getStaticProperty('PP_HTML_BBCodeParser','_options');
+        $options = FS_HTML_BBCodeParser::getStaticProperty('FS_HTML_BBCodeParser','_options');
         $o = $options['open'];
         $c = $options['close'];
         $oe = $options['open_esc'];
@@ -710,8 +713,10 @@ class PP_HTML_BBCodeParser_Filter_Links extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-class PP_HTML_BBCodeParser_Filter_Lists extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Lists')){
+class FS_HTML_BBCodeParser_Filter_Lists extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -757,7 +762,7 @@ class PP_HTML_BBCodeParser_Filter_Lists extends PP_HTML_BBCodeParser
     */
     function _preparse()
     {
-        $options = PP_HTML_BBCodeParser::getStaticProperty('PP_HTML_BBCodeParser','_options');
+        $options = FS_HTML_BBCodeParser::getStaticProperty('FS_HTML_BBCodeParser','_options');
         $o = $options['open'];
         $c = $options['close'];
         $oe = $options['open_esc'];
@@ -771,8 +776,10 @@ class PP_HTML_BBCodeParser_Filter_Lists extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-class PP_HTML_BBCodeParser_Filter_Images extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Images')){
+class FS_HTML_BBCodeParser_Filter_Images extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -811,7 +818,7 @@ class PP_HTML_BBCodeParser_Filter_Images extends PP_HTML_BBCodeParser
     */
     function _preparse()
     {
-        $options = PP_HTML_BBCodeParser::getStaticProperty('PP_HTML_BBCodeParser','_options');
+        $options = FS_HTML_BBCodeParser::getStaticProperty('FS_HTML_BBCodeParser','_options');
         $o = $options['open'];
         $c = $options['close'];
         $oe = $options['open_esc'];
@@ -821,10 +828,10 @@ class PP_HTML_BBCodeParser_Filter_Images extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-
-
-class PP_HTML_BBCodeParser_Filter_Extended extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Extended')){
+class FS_HTML_BBCodeParser_Filter_Extended extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -863,8 +870,10 @@ class PP_HTML_BBCodeParser_Filter_Extended extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-class PP_HTML_BBCodeParser_Filter_Email extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Email')){
+class FS_HTML_BBCodeParser_Filter_Email extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -900,7 +909,7 @@ class PP_HTML_BBCodeParser_Filter_Email extends PP_HTML_BBCodeParser
     */
     function _preparse()
     {
-        $options = PP_HTML_BBCodeParser::getStaticProperty('PP_HTML_BBCodeParser','_options');
+        $options = FS_HTML_BBCodeParser::getStaticProperty('FS_HTML_BBCodeParser','_options');
         $o = $options['open'];
         $c = $options['close'];
         $oe = $options['open_esc'];
@@ -914,8 +923,10 @@ class PP_HTML_BBCodeParser_Filter_Email extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-class PP_HTML_BBCodeParser_Filter_Basic extends PP_HTML_BBCodeParser
+if(!class_exists('FS_HTML_BBCodeParser_Filter_Basic')){
+class FS_HTML_BBCodeParser_Filter_Basic extends FS_HTML_BBCodeParser
 {
 
     /**
@@ -952,14 +963,16 @@ class PP_HTML_BBCodeParser_Filter_Basic extends PP_HTML_BBCodeParser
 
 
 }
+}
 
-$PP_PARSER_OBJECT = "";
+$FS_PARSER_OBJECT = "";
 
-function PP_BBCode($text) {
-	global $PP_PARSER_OBJECT;
+if(!function_exists('FS_BBCode')){
+function FS_BBCode($text) {
+	global $FS_PARSER_OBJECT;
 
-	if ($PP_PARSER_OBJECT==""){
-		$PP_PARSER_OBJECT =& new PP_HTML_BBCodeParser(array(
+	if ($FS_PARSER_OBJECT==""){
+		$FS_PARSER_OBJECT =& new FS_HTML_BBCodeParser(array(
 			'quotestyle'    => 'single',
 			'quotewhat'     => 'all',
 			'open'          => '[',
@@ -967,7 +980,8 @@ function PP_BBCode($text) {
 			'xmlclose'      => true,
 			'filters'       => 'Basic,Extended,Links,Images,Lists,Email'));
 	}
-	return $PP_PARSER_OBJECT->qparse($text);
+	return $FS_PARSER_OBJECT->qparse($text);
+}
 }
 
 ?>

@@ -16,7 +16,7 @@ if (file_exists($root.'/wp-load.php')) {
 	//	return false;
 		
 	$topic = $_GET['topic'];
-	
+
 	if($topic == "all"){
 		$posts = $wpdb->get_results("SELECT * FROM $vasthtml->t_posts ORDER BY `date` DESC LIMIT 20 ");
 		$count_posts = $wpdb->get_var($wpdb->prepare("SELECT * FROM $vasthtml->t_posts"));
@@ -24,8 +24,13 @@ if (file_exists($root.'/wp-load.php')) {
 		$description = __("Forum Feed", "vasthtml");
 	}
 	else{
+		$topic = (int)$_GET['topic'];		
+		if(!($topic)){
+			wp_die('Bad request, please re-enter.');
+		}
 		$posts = $wpdb->get_results("SELECT * FROM $vasthtml->t_posts WHERE parent_id = $topic ORDER BY `date` DESC LIMIT 20 ");
 		$count_posts = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $vasthtml->t_posts WHERE parent_id = $topic"));
+		
 		$description = __("Forum Topic:", "vasthtml")." - ".$vasthtml->get_subject($topic);
 		$title = get_bloginfo('name')." ".__("Forum", "vasthtml")." - ".__("Topic: ", "vasthtml")." ".$vasthtml->get_subject($topic);
 	}

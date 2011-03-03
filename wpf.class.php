@@ -28,17 +28,17 @@ class vasthtml extends vasthtml_pro{
 
 	}
 
-	
+
 	function callback($buffer) {
         // modify buffer here, and then return the updated code
-            	
+
         return '';
 	}
-         
+
 	function buffer_start() {
 		ob_start(array($this,"go"));
 	}
-         
+
 	function buffer_end() {
 		ob_end_flush();
 	}
@@ -77,6 +77,7 @@ class vasthtml extends vasthtml_pro{
 	var $opt = array();
 	var $base_url = "";
 	var $skin_url = "";
+	var $current_lang = "";
 	var $curr_page = "";
 	var $last_visit = "";
 	var $user_options = array();
@@ -127,7 +128,8 @@ class vasthtml extends vasthtml_pro{
 								'forum_captcha' 				=> true,
 								'hot_topic'						=> 15,
 								'veryhot_topic'					=> 25,
-								'forum_seo_urls'				=> false
+								'forum_seo_urls'				=> false,
+								'forum_lang'					=> 'en_US', // default language
 								);
 
 		$this->user_options = array(
@@ -141,9 +143,54 @@ class vasthtml extends vasthtml_pro{
 		add_option('vasthtml_options', $this->options);
 
 		// Get the options
-		$this->opt = get_option('vasthtml_options');
+		$this->opt = get_option('vasthtml_options'); 
 		$this->skin_url = WPFURL."skins/".$this->opt['forum_skin'];
+		$this->current_lang = $this->opt['forum_lang'] ? $this->opt['forum_lang'] : $this->options['forum_lang'];
 
+		/*
+		 * If the domain already exists, the translations will be merged.
+		 * If both sets have the same string, the translation from the original value will be taken.
+		 * Doc: http://phpdoc.wordpress.org/trunk/WordPress/i18n/_wp-includes---l10n.php.html
+		 */
+		if ($this->current_lang && $this->current_lang != $this->options['forum_lang']) {
+			$plugin_dir = basename(dirname(__FILE__));
+			$lang_dir = ABSPATH.'wp-content/plugins/forum-server/languages/';
+			
+			if (file_exists($lang_dir.'vasthtml_'.$this->current_lang.'.mo')) {
+				load_textdomain("vasthtml", $lang_dir.'vasthtml_'.$this->current_lang.'.mo');
+				// global wordpress translate method with wp-config.php WPLANG
+				//load_textdomain("vasthtml", $lang_dir.'vasthtml_'.$this->current_lang);
+			} else {
+				die('Language (.mo) file doesn\'t exist or accessible');
+			}
+		}
+	}
+
+	function get_langs() {
+		$locales = array();
+		$matches = array();
+		$plugin_dir = basename(dirname(__FILE__));
+		$directory = ABSPATH.'wp-content/plugins/forum-server/languages/';
+		$handler = opendir($directory);
+
+		while ($file = readdir($handler)) {
+			if ($file != "." && $file != "..") {
+				// load .mo translation file and translate info
+				$pattern = "/^vasthtml_(\w{2,}_\w{2,})\.(mo|txt)$/";
+				if (preg_match($pattern, (string) $file, $matches)) {
+					if (isset($matches[2]) && !empty($matches[2]) && $matches[2] == 'mo') {
+						$locales[$matches[1]]['file'] = $file;
+					} else {
+						if (isset($matches[1])) {
+							$locales[$matches[1]]['info'] = file($directory.$file);
+						}
+					}
+				}
+			}
+		}
+		closedir($handler);
+
+		return $locales;
 	}
 
 	function check_subject($str) {
@@ -621,7 +668,8 @@ class vasthtml extends vasthtml_pro{
 		if(!$user)
 			return __("Guest", "vasthtml");
 
-		return $user->$data;
+		return $user->{$data};
+		//return $user->$data;
 	}
 
 	function get_lastpost($thread_id){
@@ -1131,7 +1179,7 @@ class vasthtml extends vasthtml_pro{
 	}
 	// TODO
 	function output_filter($string){		
-		return stripslashes(PP_BBCode($string));
+		return stripslashes(FS_BBCode($string));
 	}
 	function input_filter($string){
 		global $wpdb;
@@ -2240,7 +2288,8 @@ function forum_get_group_from_post($thread_id){
 	}
 
 	function profile_link($user_id){
-		$user = $this->get_userdata($user_id, USER);
+		//$user = $this->get_userdata($user_id, USER); // fixed display name
+		$user = $this->get_userdata($user_id, 'display_name');
 
 		if($user == __("Guest", "vasthtml"))
 			return $user;
