@@ -511,7 +511,7 @@ $image = WPFURL."images/user.png";
 				jQuery('#forum_lang').bind('change', function(e){
 					var s = jQuery(e.target);
 					jQuery('.lang_descr div.item_descr').removeClass('active').hide();
-					jQuery('#'+$(s).val()+'_descr').addClass('active').show();
+					jQuery('#'+jQuery(s).val()+'_descr').addClass('active').show();
 				});
 			});
 		</script>

@@ -4,7 +4,7 @@
 	Plugin Author: VastHTML
 	Author URI: http://forumpress.org/
     Plugin URI: http://forumpress.org/
-	Version: 1.6.6
+	Version: 1.6.7
 */
 
 include_once("wpf.class.php");
@@ -22,7 +22,8 @@ register_activation_hook(__FILE__ ,array(&$vasthtml,'wp_forum_install'));
 //} else {
 //    add_action("the_content", array(&$vasthtml, "go"));
 //}
-add_action('init', 'jquery_init');
+
+add_action('admin_head-forum-server/fs-admin/fs-admin.php', 'jquery_init');
 add_action('init', array(&$vasthtml,'set_cookie'));
 add_action('wp_logout', array(&$vasthtml,'unset_cookie'));
 add_filter("wp_title", array(&$vasthtml, "set_pagetitle"));
@@ -34,7 +35,7 @@ function latest_activity($num = 5){
 function jquery_init() {
 	// comment out the next two lines to load the local copy of jQuery
 	wp_deregister_script('jquery');
-	wp_register_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js', false, '1.3.2');
+	wp_register_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
 	wp_enqueue_script('jquery');
 }
 ?>

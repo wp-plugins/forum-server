@@ -6,7 +6,7 @@ Plugin URI: http://forumpress.org/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.1
-Stable tag: 1.6.6
+Stable tag: 1.6.7
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -55,20 +55,17 @@ http://forumpress.org/support/forumpress-g5/forum-server-1.4-and-previous-archiv
 To make a translation of any wp plugin use this plugin
 http://wordpress.org/extend/plugins/codestyling-localization/
 
-Prefix the .mo and .po files with "vasthtml-", for example: vasthtml-en_EN.mo, vasthtml-en_EN.po.
-When the .mo and .po files are ready:
-1. Copy .mo and .po files to /wp-content/plugins/forum-server/
-2. Open /wp-content/plugins/forum-server/wpf-main.php file
-3. Uncomment the following lines:
-//$plugin_dir = basename(dirname(__FILE__));
-//load_textdomain("vasthtml", ABSPATH.'wp-content/plugins/'. $plugin_dir.'/'.'vasthtml-en_EN.mo');
-(change "en_EN" to your locale descriptor.
+When the .mo file is ready:
+1. Prefix the .mo file with "vasthtml-", for example: vasthtml-en_EN.mo.
+2. Copy this file to /wp-content/plugins/forum-server/languages/
+3. Go to Admin > WP Forum Server > General Options and choose your language
+Also you can add description to your translate file: create file vasthtml-en_EN.txt with short description and put it info language directory.
 
 = May I recommend some new features? =
 Yes please do. http://vasthtml.com/support/?vasthtmlaction=viewtopic&t=20.0
 
 = Where can I get support? =
-In the support forums on Vast HTML: http://vasthtml.com/support/
+In the support forums on Vast HTML: http://forumpress.org/support
 
 
 == Screenshots ==
@@ -78,6 +75,8 @@ In the support forums on Vast HTML: http://vasthtml.com/support/
 3. About the forum page.
 
 == Changelog ==
+= 1.6.7 =
+* Fixed bug with wordpress html editor in admin
 = 1.6.6 =
 * Fixed major security bug with RSS feed
 * Fixed BBCodes php errors on some of installation
