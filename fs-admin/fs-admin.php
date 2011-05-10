@@ -1,36 +1,40 @@
 <?php
-//include("wpf_define.php");
+
 include("fs-admin_pro.php");
+
 class vasthtmladmin extends vasthtmladmin_pro{
 
 		var $admin_tabs = array();
 		var $cur_tab = "";
 
-		function vasthtmladmin(){			
+		function vasthtmladmin() {
 			$this->admin_page();
-		}
+		}		
 		function output_filter($string){
 			return "";
 		}
-		function admin_page(){
-		global $wpdb, $table_prefix;
-		$wpdb->show_errors();
-			$this->admin_tabs = array(	"options" 		=> __("General Options", "vasthtml"),
-										"structure" 	=> __("Categories and forums", "vasthtml"),
-										"skins"			=> __("Skins", "vasthtml"),
-										"moderators"	=> __("Moderators", "vasthtml"),
-										"usergroups"	=> __("User Groups", "vasthtml"),
-										"about"			=> __("About", "vasthtml")
-										);
-
-		if (isset($_REQUEST['vasthtml_action']) && !empty($this->admin_tabs[$_REQUEST['vasthtml_action']]))
-			$cur_tab = $_REQUEST['vasthtml_action'];
-		else
-			$cur_tab = "options";
-			$url = ADMIN_BASE_URL."/fs-admin.php&amp;vasthtml_action=";
+		function admin_page($param = ''){
+			global $wpdb, $table_prefix;
+			$wpdb->show_errors();
+			$this->admin_tabs = array("options" => __("General Options", "vasthtml"),
+									"structure" 	=> __("Categories and forums", "vasthtml"),
+									"skins"			=> __("Skins", "vasthtml"),
+									"moderators"	=> __("Moderators", "vasthtml"),
+									"usergroups"	=> __("User Groups", "vasthtml"),
+									"about"			=> __("About", "vasthtml")
+								);
+			
+			if (isset($_REQUEST['vasthtml_action']) && !empty($this->admin_tabs[$_REQUEST['vasthtml_action']])) {
+				$cur_tab = $_REQUEST['vasthtml_action'];
+			} else {
+				$cur_tab = "options";
+			}	
+						
+//			$url = ADMIN_BASE_URL."/fs-admin.php&amp;vasthtml_action=";
 			foreach ($this->admin_tabs as $tab => $name) {
+				
 			}
-switch($cur_tab){
+			switch($cur_tab) {
 				case "options": 	$this->options(); break;
 				case "structure": 	$this->structure(); break;
 				case "usergroups": 	$this->usergroups(); break;
@@ -97,7 +101,6 @@ switch($cur_tab){
 				if($group == "add_user_null")
 					return __("You must choose a user group", "vasthtml");
 
-				var_dump($users);
 				foreach($users as $user){
 					if($user){
 						trim($user);
@@ -148,8 +151,15 @@ switch($cur_tab){
 			if(isset($_GET['do']) && $_GET['do'] == "edit_usergroup"){
 				include("wpf-usergroup-edit.php");
 			}
-$image = WPFURL."images/user.png";
-					echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage User Groups", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."usergroups&do=addusergroup'> ".__("add new", "vasthtml")."</a></h2> ";
+			$image = WPFURL."images/user.png";
+			// we need to check if using pro version
+			$up2pro = '';
+			if (!method_exists($vasthtml, 'quick_reply')) {
+				$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+					style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+					'.__('Upgrade to Pro').'</a>';
+			}			
+			echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage User Groups", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."usergroups&do=addusergroup'> ".__("add new", "vasthtml")."</a></h2>".$up2pro;
 			$usergroups = $vasthtml->get_usergroups();
 /*****************************************/
 			if($usergroups){
@@ -250,7 +260,14 @@ $image = WPFURL."images/user.png";
 			if (is_dir(SKINDIR)) {
 			   if ($dh = opendir(SKINDIR)) {
 				$image = WPFURL."images/logomain.png";
-				echo "<div class='wrap'><h2>".__("<img src='$image'>WP Forum Server &raquo; Skin options", "vasthtml")."</h2><br class='clear' /><table class='widefat'>
+				// we need to check if using pro version
+				$up2pro = '';
+				if (!method_exists($vasthtml, 'quick_reply')) {
+					$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+						style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+						'.__('Upgrade to Pro').'</a>';
+				}				
+				echo "<div class='wrap'><h2>".__("<img src='$image'>WP Forum Server &raquo; Skin options", "vasthtml")."</h2>".$up2pro."<br class='clear' /><table class='widefat'>
 						<thead>
 							<tr>
 								<th>".__("Screenshot", "vasthtml")."</th>
@@ -302,8 +319,15 @@ $image = WPFURL."images/user.png";
 		}
 		function about(){
 			$image = WPFURL."images/logomain.png";
+			// we need to check if using pro version
+			$up2pro = '';
+			if (!method_exists($vasthtml, 'quick_reply')) {
+				$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+					style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+					'.__('Upgrade to Pro').'</a>';
+			}				
 			echo " <div class='wrap'>
-				<h2><img src='$image'>About WP Forum Server</h2>
+				<h2><img src='$image'>About WP Forum Server</h2>".$up2pro."
                <table class='widefat'> <thead>
 							<tr>
 				<th>Current Version: <strong>".$this->get_version()."</strong></th>
@@ -366,8 +390,17 @@ $image = WPFURL."images/user.png";
 			global $vasthtml;
 			$op = get_option('vasthtml_options');
 			$image = WPFURL."images/chart.png";
+			// we need to check if using pro version
+			$up2pro = '';
+			if (!method_exists($vasthtml, 'quick_reply')) {
+				$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+					style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+					'.__('Upgrade to Pro').'</a>';
+			}			
+			
 			echo '<div class="wrap">
-			<h2>'.__("<img src='$image'>WP Forum Server", "vasthtml").'</h2><br class="clear" />
+			<h2>'.__("<img src='$image'>WP Forum Server", "vasthtml").'</h2>'.$up2pro.'
+			<br class="clear" />
 			<table class="widefat">
 				<thead>
 					<tr>
@@ -400,7 +433,7 @@ $image = WPFURL."images/user.png";
 						<td>'.$this->get_version().'</td>
 					</tr>
 			</table>';
-			$image = WPFURL."images/logomain.png";
+			$image = WPFURL."images/logomain.png";	
 			echo '<h2>'.__("<img src='$image'>WP Forum Server &raquo;  General Options", "vasthtml").'</h2>';
 			echo '<form id="vasthtml_option_form" name="vasthtml_option_form" method="post" action="">';
 
@@ -692,9 +725,16 @@ function structure(){
 
 	// Check if group/forum update is nessesrary
 	$image = WPFURL."images/table.png";
+	// we need to check if using pro version
+	$up2pro = '';
+	if (!method_exists($vasthtml, 'quick_reply')) {
+		$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+			style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+			'.__('Upgrade to Pro').'</a>';
+	}		
 	$this->edit_forum_group();
 	echo "<div class='wrap'>";
-		echo "<h2>".__("<img src='$image'>WP Forum Server &raquo; Categories and Forums ", "vasthtml")."</h2>";
+		echo "<h2>".__("<img src='$image'>WP Forum Server &raquo; Categories and Forums ", "vasthtml")."</h2>".$up2pro;
 
 
 
@@ -904,8 +944,15 @@ function structure(){
 				include('wpf-moderator.php');
 			}
 			$mods = $vasthtml->get_moderators();
-             $image = WPFURL."images/user.png";
-			echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage Moderators", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."moderators&do=add_moderator'>(".__("add new", "vasthtml").")</a></h2>";
+            $image = WPFURL."images/user.png";
+			// we need to check if using pro version
+			$up2pro = '';
+			if (!method_exists($vasthtml, 'quick_reply')) {
+				$up2pro = '<a href="http://forumpress.org/features" title="Upgrade to Pro" 
+					style="font: italic 16px/18px Georgia, Times, serif; font-size: 16px; float: right; margin-top: -28px;">
+					'.__('Upgrade to Pro').'</a>';
+			}				 
+			echo "<h2>".__("<img src='$image'>WP Forum Server &raquo;  Manage Moderators", "vasthtml")." <a class='button' href='".ADMIN_BASE_URL."moderators&do=add_moderator'>(".__("add new", "vasthtml").")</a></h2>".$up2pro;
 
 			if($mods){
 

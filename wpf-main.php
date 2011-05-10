@@ -4,7 +4,7 @@
 	Plugin Author: VastHTML
 	Author URI: http://forumpress.org/
     Plugin URI: http://forumpress.org/
-	Version: 1.6.7
+	Version: 1.6.8
 */
 
 include_once("wpf.class.php");
@@ -15,7 +15,8 @@ $vasthtml = new vasthtml();
 // Activating?
 register_activation_hook(__FILE__ ,array(&$vasthtml,'wp_forum_install'));
 
- add_action("the_content", array(&$vasthtml, "go"));
+add_action("the_content", array(&$vasthtml, "go"));
+
 //if(ini_get('output_buffering')){
 //    add_action('wp_head', array(&$vasthtml, "buffer_start"));
 //    add_action('wp_footer', array(&$vasthtml, "buffer_end"));

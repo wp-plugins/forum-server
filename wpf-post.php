@@ -21,9 +21,9 @@ if(($_GET['vasthtmlaction'] == "postreply")){
 	$this->current_view = POSTREPLY;
 	$thread = $this->check_parms($_GET['thread']);
 	$page = $this->curr_page;
-		$out .= $this->header();
+	$out .= $this->header();
 
-	$subj = htmlentities($this->get_subject($thread), $quote_style = ENT_QUOTES);
+	$subj = htmlentities($this->get_subject($thread), $quote_style = ENT_QUOTES, 'UTF-8');
 	$out .= "<form action='".WPFURL."wpf-insert.php' name='addform' method='post'>";
 	$out .= "<table class='wpf-table' width='100%'>
 			<tr>

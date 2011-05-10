@@ -17,7 +17,7 @@ echo "<form name='add_usertogroup_form' action='".ADMIN_BASE_URL."usergroups' me
         <td>";
 // change textarea to multiselect with array of IDs
 //		echo "<textarea name='togroupusers' ".ADMIN_ROW_COL."></textarea><br/>";
-		echo "<select name='togroupusers[]' class='userselect' multiple><option selected='selected' value='admin'>".__("Select user", "vasthtml")."</option";
+		echo "<select name='togroupusers[]' class='userselect' multiple><option selected='selected' value='admin'>".__("Select user", "vasthtml")."</option>";
 				foreach($users as $user)
 					echo "<option value='$user->user_login'>$user->user_login (ID: $user->ID)</option>";
 				

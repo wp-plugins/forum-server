@@ -13,17 +13,33 @@ class vasthtml extends vasthtml_pro{
 
 	function vasthtml(){
 
-		add_action("admin_menu", array(&$this,"add_admin_pages"));
-		add_action("admin_head", array(&$this, "admin_header"));
-		add_action("wp_head", array(&$this, "setup_header"));
+		if (method_exists($this, 'add_admin_pages')) {
+			add_action("admin_menu", array(&$this,"add_admin_pages"));
+		}
+		if (method_exists($this, 'admin_header')) {
+			add_action("admin_head", array(&$this, "admin_header"));
+		}
+		if (method_exists($this, 'setup_header')) {
+			add_action("wp_head", array(&$this, "setup_header"));
+		}		
 		if (method_exists($this, 'load_wpf_posts_widget')) {
 			add_action("plugins_loaded", array(&$this, "load_wpf_posts_widget"));
 		}
 		if (method_exists($this, 'load_wpf_topics_widget')) {
 			add_action("plugins_loaded", array(&$this, "load_wpf_topics_widget"));
 		}
-		add_action("wp_footer", array(&$this, "wpf_footer"));
-
+		if (method_exists($this, 'wpf_footer')) {
+			add_action("wp_footer", array(&$this, "wpf_footer"));
+		}
+		if (method_exists($this, 'load_wpf_posts_widget')) {
+			add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
+		}
+		if (method_exists($this, 'load_wpf_topics_widget')) {
+			add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
+		}
+		if (method_exists($this, 'wpf_footer')) {
+			add_filter("init", array(&$this, "do_flush_rules"));
+		}	
 		$this->init();
 
 	}
@@ -206,6 +222,16 @@ class vasthtml extends vasthtml_pro{
 //
 	// Add admin pages
 	function add_admin_pages(){
+		// last revision
+//		add_menu_page('Forum Server', 'Forum Server', 'manage_options', 'forum-server/fs-admin/fs-admin-options.php', '', WPFURL."images/logo.png");
+//		add_submenu_page('forum-server/fs-admin/fs-admin-options.php', 'Skins', 'Skins', 'manage_options',"forum-server/fs-admin/fs-admin-skins.php");
+//		add_submenu_page('forum-server/fs-admin/fs-admin-options.php', 'Categories & Forums', 'Categories & Forums', 'manage_options', 'forum-server/fs-admin/fs-admin-structure.php');
+//		add_submenu_page('forum-server/fs-admin/fs-admin-options.php', 'Moderators', 'Moderators', 'manage_options', 'forum-server/fs-admin/fs-admin-moderators.php');
+//		add_submenu_page('forum-server/fs-admin/fs-admin-options.php', 'User Groups', 'User Groups', 'manage_options', 'forum-server/fs-admin/fs-admin-usergroups.php');
+//		add_submenu_page('forum-server/fs-admin/fs-admin-options.php', 'About', 'About', 'manage_options', 'forum-server/fs-admin/fs-admin-about.php');
+		// @todo: http://codex.wordpress.org/Function_Reference/add_menu_page && http://codex.wordpress.org/Function_Reference/add_submenu_page
+				
+		// default menu method with single file (w/o highlighting)
 		add_menu_page('Forum Server', 'Forum Server', 8, 'forum-server/fs-admin/fs-admin.php', '', WPFURL."images/logo.png");
 		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Skins', 'Skins', 8,"admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=skins");
 		add_submenu_page('forum-server/fs-admin/fs-admin.php', 'Categories & Forums', 'Categories & Forums', 8, "admin.php?page=forum-server/fs-admin/fs-admin.php&amp;vasthtml_action=structure");
@@ -625,7 +651,7 @@ class vasthtml extends vasthtml_pro{
 		$load =  __("Page loaded in:", "vasthtml")." ".round($end_time-$start_time, 3)." ".__("seconds.", "vasthtml")."";
 		if ($forum_instance === false) {
 			$this->o .= "<div id='wpf-info'><small>
-				".__("WP Forum Server by ", "vasthtml")."<a href='http://www.vasthtml.com'>VastHTML</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br />
+				".__("WP Forum Server by ", "vasthtml")."<a href='http://forumpress.org'>ForumPress</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br />
 				".__("Version:", "vasthtml").$this->get_version().";
 				$load</small>
 			</div>";

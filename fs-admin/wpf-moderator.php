@@ -5,6 +5,7 @@ global $wpdb, $table_prefix, $vasthtml;
 		$mods = $vasthtml->get_moderators();
 		$forums = $vasthtml->get_forums();
 		$users = $vasthtml->get_users();
+		
 		$groups = $vasthtml->get_groups();
 $image = WPFURL."images/user.png"; 
 echo "<h2>".__("<img src='$image'> Add moderator", "vasthtml")."</h2>
@@ -19,7 +20,8 @@ echo "<h2>".__("<img src='$image'> Add moderator", "vasthtml")."</h2>
       </thead>
 	<tr>
 		<td>
-			<select name='addmod_user_id'><option selected='selected' value='add_mod_null'>".__("Select user", "vasthtml")."</option";
+			<select name='addmod_user_id'>
+				<option selected='selected' value='add_mod_null'>".__("Select user", "vasthtml")."</option>";
 				foreach($users as $user)
 					//if(!$vasthtml->is_moderator($user->ID))
 						echo "<option value='$user->ID'>$user->user_login ($user->ID)</option>";
