@@ -40,7 +40,6 @@ class vasthtml extends vasthtml_pro{
 			add_filter("init", array(&$this, "do_flush_rules"));
 		}	
 		$this->init();
-
 	}
 
 
