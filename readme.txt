@@ -6,7 +6,7 @@ Plugin URI: http://forumpress.org/
 Tags: forum, integrated, bbpress
 Requires at least: 2.6
 Tested up to: 3.1.2
-Stable tag: 1.6.8
+Stable tag: 1.6.9
 
 This Wordpress plugin is a complete forum system for your wordpress blog.
 
@@ -84,6 +84,9 @@ In the support forums on Vast HTML: http://forumpress.org/support
 3. About the forum page.
 
 == Changelog ==
+
+= 1.6.9 =
+* Fixed bug: modules loading errors
 
 = 1.6.8 =
 * Fixed bug: SEO-friendly URLs in PRO-version

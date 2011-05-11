@@ -12,7 +12,6 @@ if(!class_exists('vasthtml')){
 class vasthtml extends vasthtml_pro{
 
 	function vasthtml(){
-
 		if (method_exists($this, 'add_admin_pages')) {
 			add_action("admin_menu", array(&$this,"add_admin_pages"));
 		}
@@ -31,13 +30,13 @@ class vasthtml extends vasthtml_pro{
 		if (method_exists($this, 'wpf_footer')) {
 			add_action("wp_footer", array(&$this, "wpf_footer"));
 		}
-		if (method_exists($this, 'load_wpf_posts_widget')) {
+		if (method_exists($this, 'set_rewrite_rules')) {
 			add_filter("rewrite_rules_array", array(&$this, "set_rewrite_rules"));
 		}
-		if (method_exists($this, 'load_wpf_topics_widget')) {
+		if (method_exists($this, 'set_rewrite_qvars')) {
 			add_filter("query_vars", array(&$this, "set_rewrite_qvars"));
 		}
-		if (method_exists($this, 'wpf_footer')) {
+		if (method_exists($this, 'do_flush_rules')) {
 			add_filter("init", array(&$this, "do_flush_rules"));
 		}	
 		$this->init();
