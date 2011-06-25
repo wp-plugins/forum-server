@@ -12,6 +12,7 @@ if(!class_exists('vasthtml')){
 class vasthtml extends vasthtml_pro{
 
 	function vasthtml(){
+		
 		if (method_exists($this, 'add_admin_pages')) {
 			add_action("admin_menu", array(&$this,"add_admin_pages"));
 		}
@@ -40,6 +41,7 @@ class vasthtml extends vasthtml_pro{
 			add_filter("init", array(&$this, "do_flush_rules"));
 		}	
 		$this->init();
+
 	}
 
 
@@ -134,7 +136,7 @@ class vasthtml extends vasthtml_pro{
 								'forum_require_registration' 	=> true,
 								'forum_date_format' 			=> "F j, Y, H:i",
 								'forum_use_gravatar' 			=> true,
-								'forum_skin'					=> "default",
+								'forum_skin'					=> "wpf-2.0",
 								'forum_allow_post_in_solved' 	=> true,
 								'set_sort' 						=> "DESC",
 								'forum_use_spam' 				=> false,
@@ -1623,11 +1625,83 @@ class vasthtml extends vasthtml_pro{
 		
 		$wpdb->query("ALTER TABLE $table_usergroups CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
 		$wpdb->query("ALTER TABLE $table_usergroups DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;");
+
+		$this->convert_moderators();
+
+		//automatic create page "ForumPress" if not exist
+		$default_page = array(  
+			'post_title' => 'ForumPress',  
+			'post_content' => '[forumServer]',  
+			'post_status' => 'publish',  
+			'post_author' => '',  
+			'post_category' => '',  
+			'post_type' => 'page',  
+			'ping_status' => get_option('default_ping_status'),  
+			'post_parent' => 0,  
+			'menu_order' => 0,  
+			'to_ping' =>  '',  
+			'pinged' => '',  
+			'post_password' => '',  
+			'guid' => '',  
+			'post_content_filtered' => '',  
+			'post_excerpt' => '',  
+			'import_id' => 0
+		);  	
+		$page_count = $wpdb->get_var("SELECT COUNT(`id`) FROM $wpdb->posts WHERE `post_title` = '" . $default_page['post_title'] . "' AND `post_status` = 'publish'");
+		if($page_count == 0){
+			wp_insert_post($default_page);  	
+		}
+
+		//Automatic create category "Uncategorized" if not exist
+		$default_category = array(
+			'name' => 'Uncategorized',
+			'description' => 'Category Uncategorized Description',
+		);
+		$category_count = $wpdb->get_var("SELECT COUNT(`id`) FROM $table_groups WHERE `name` = '" . $default_category['name'] . "'");
+		if($category_count == 0){
+			$insert_category_query = "INSERT INTO `" . $table_groups ."` (`id`, `name`, `description`, `usergroups`, `sort`) VALUES ('', '" . $default_category['name'] . "', '" . $default_category['description'] . "', '', '')";
+			$wpdb->query($insert_category_query);
+			$def_cat_id = mysql_insert_id();
+		}
+
+		//Automatic create Forum "Demo Forum" in category "Uncategorized" if not exist
+		$default_forum = array(
+			'name' => 'Demo Forum',
+			'description' => 'Demo Forum Description',
+			'parent_id' => $def_cat_id
+		);
+		$forum_count = $wpdb->get_var("SELECT COUNT(`id`) FROM $table_forums WHERE `name` = '" . $default_forum['name'] . "'");
+		if($forum_count == 0){
+			$insert_forum_query = "INSERT INTO `" . $table_forums ."` (`id`, `name`, `parent_id`, `description`, `views`, `sort`) VALUES ('', '" . $default_forum['name'] . "', " . $default_forum['parent_id'] . ", '" . $default_forum['description'] . "', '', '')";
+			$wpdb->query($insert_forum_query);
+			$def_forum_id = mysql_insert_id();
+		}
+
+		//Automatic create Topic "Demo Topic" in forum "Demo Forum" if not exist
+		$default_theme = array(
+			'subject' => 'Demo Topic',
+			'status' => 'open',
+			'parent_id' => $def_forum_id
+		);
+		$theme_count = $wpdb->get_var("SELECT COUNT(`id`) FROM $table_threads WHERE `subject` = '" . $default_theme['subject'] . "'");
+		if($theme_count == 0){
+			$insert_theme_query = "INSERT INTO `" . $table_threads ."` (`id`, `parent_id`, `views`, `subject`, `date`, `status`, `starter`, `last_post`) VALUES ('', " . $default_theme['parent_id'] . ", '', '" . $default_theme['subject'] . "', '', '" . $default_theme['status'] . "', '', '')";
+			$wpdb->query($insert_theme_query);
+			$def_theme_id = mysql_insert_id();
+		}
 		
-
-
-			$this->convert_moderators();
-
+		//Automatic create Post "Helo World" in forum "Demo Forum" if not exist
+		$default_post = array(
+			'subject' => 'Hello World',
+			'text' => 'Welcome to ForumPress. This is your first post. Edit or delete it!',
+			'parent_id' => $def_theme_id,
+			'date' => date('Y-m-d H:i:s')
+		);
+		$post_count = $wpdb->get_var("SELECT COUNT(`id`) FROM $table_posts WHERE `subject` = '" . $default_post['subject'] . "'");
+		if($post_count == 0){
+			$insert_post_query = "INSERT INTO `" . $table_posts ."` (`id`, `text`, `parent_id`, `date`, `author_id`, `subject`, `views`) VALUES ('', '" . $default_post['text'] . "', " . $default_post['parent_id'] . ", '" . $default_post['date'] . "', '', '" . $default_post['subject'] . "', '')";
+			$wpdb->query($insert_post_query);
+		}
 
 	}
 
