@@ -85,6 +85,9 @@ In the support forums on Vast HTML: http://forumpress.org/support
 
 == Changelog ==
 
+= 1.7.3 =
+* minor changes to fix version
+
 = 1.7.2 =
 * restored missing files from SVN
 
