@@ -75,7 +75,7 @@ if(isset($_POST['add_post_submit'])){
 	else{
 		$sql_post = "INSERT INTO $vasthtml->t_posts (text, parent_id, `date`, author_id, subject) VALUES('".mysql_real_escape_string(stripslashes($content))."', ".(int)$thread.", NOW(), ".(int)$user_ID.", '".mysql_real_escape_string(stripslashes($subject))."')";
 		$wpdb->query($sql_post);
-		$wpdb->query("UPDATE $vasthtml->t_threads SET last_post = '$date' WHERE id = $thread");
+		$wpdb->query("UPDATE $vasthtml->t_threads SET last_post = '$date' WHERE id = ".(int)$thread);
 		
 	}
 		
