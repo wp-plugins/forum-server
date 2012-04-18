@@ -558,19 +558,19 @@ class vasthtmladmin extends vasthtmladmin_pro{
 				global $wpdb, $table_prefix;
 				$options = array( 'forum_posts_per_page' 		=> $wpdb->escape($_POST['forum_posts_per_page']),
 								'forum_threads_per_page' 		=> $wpdb->escape($_POST['forum_threads_per_page']),
-								'forum_require_registration' 	=> $_POST['forum_require_registration'],
+								'forum_require_registration' 	=> $wpdb->escape($_POST['forum_require_registration']),
 								'forum_date_format' 			=> $wpdb->escape($_POST['forum_date_format']),
-								'forum_use_gravatar' 			=> $_POST['forum_use_gravatar'],
+								'forum_use_gravatar' 			=> $wpdb->escape($_POST['forum_use_gravatar']),
 								'forum_skin'					=> $op['forum_skin'],
-								'forum_allow_post_in_solved' 	=> $_POST['forum_allow_post_in_solved'],
+								'forum_allow_post_in_solved' 	=> $wpdb->escape($_POST['forum_allow_post_in_solved']),
 								'set_sort' 						=> $op['set_sort'],
-								'forum_use_spam' 				=> $_POST['forum_use_spam'],
-								'forum_use_bbcode' 				=> $_POST['forum_use_bbcode'],
-								'forum_captcha' 				=> $_POST['forum_captcha'],
-								'hot_topic' 					=> $_POST['hot_topic'],
-								'veryhot_topic' 				=> $_POST['veryhot_topic'],
-								'forum_seo_urls' 				=> $_POST['forum_seo_urls'],
-								'forum_lang'	 				=> $_POST['forum_lang']
+								'forum_use_spam' 				=> $wpdb->escape($_POST['forum_use_spam']),
+								'forum_use_bbcode' 				=> $wpdb->escape($_POST['forum_use_bbcode']),
+								'forum_captcha' 				=> $wpdb->escape($_POST['forum_captcha']),
+								'hot_topic' 					=> $wpdb->escape($_POST['hot_topic']),
+								'veryhot_topic' 				=> $wpdb->escape($_POST['veryhot_topic']),
+								'forum_seo_urls' 				=> $wpdb->escape($_POST['forum_seo_urls']),
+								'forum_lang'	 				=> $wpdb->escape($_POST['forum_lang'])
 				);
 
 				update_option('vasthtml_options', $options);
@@ -685,7 +685,7 @@ class vasthtmladmin extends vasthtmladmin_pro{
 			global $wpdb, $table_prefix;
 			$add_forum_description = $wpdb->escape($_POST['add_forum_description']);
 			$add_forum_name = $wpdb->escape($_POST['add_forum_name']);
-			$add_forum_group_id = $_POST['add_forum_group_id'];
+			$add_forum_group_id = $wpdb->escape($_POST['add_forum_group_id']);
 			if($_POST['add_forum_group_id'] == "add_forum_null")
 				return __("You must select a category", "vasthtml");
 

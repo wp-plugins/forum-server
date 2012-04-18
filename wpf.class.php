@@ -2832,7 +2832,7 @@ function forum_get_group_from_post($thread_id){
 		foreach($users as $u){
 			$p = unserialize($u->meta_value);
 
-			if(in_array($thread, $p['notify_topics']) ){
+			if(is_array($p['notify_topics']) AND in_array($thread, $p['notify_topics']) ){
 
 				$user = get_userdata($u->user_id);
 

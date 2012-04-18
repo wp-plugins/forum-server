@@ -1,10 +1,10 @@
 <?php
 if(isset($_POST['edit_save_group'])){
 	global $wpdb, $table_prefix;
-	$usergroups = $_POST['usergroups'];
+	$usergroups = $wpdb->escape($_POST['usergroups']);
 	$edit_group_name = $wpdb->escape($_POST['edit_group_name']);
 	$edit_group_description = $wpdb->escape($_POST['edit_group_description']);
-	$edit_group_id = $_POST['edit_group_id'];
+	$edit_group_id = $wpdb->escape($_POST['edit_group_id']);
 
 	if($_POST['edit_group_name'] == "")
 		echo "<div id='message' class='updated fade'><p>".__("You must specify a group name", "vasthtml")."</p></div>";
@@ -27,7 +27,7 @@ if(isset($_POST['edit_save_forum'])){
 	global $wpdb, $table_prefix;
 	$edit_forum_name = $wpdb->escape($_POST['edit_forum_name']);
 	$edit_forum_description = $wpdb->escape($_POST['edit_forum_description']);
-	$edit_forum_id = $_POST['edit_forum_id'];
+	$edit_forum_id = $wpdb->escape($_POST['edit_forum_id']);
 	if($edit_forum_name == "")
 		echo "<div id='message' class='updated fade'><p>".__("You must specify a forum name", "vasthtml")."</p></div>";
 	
@@ -39,8 +39,8 @@ if(isset($_POST['edit_save_forum'])){
 if(($_GET['do'] == "editgroup") && (!isset($_POST['edit_save_group']))){
 
 	$usergroups = $vasthtml->get_usergroups();
-	$usergroups_with_access = $this->get_usersgroups_with_access_to_group($_GET['groupid']);
-	$group_name = stripslashes($vasthtml->get_groupname($_GET['groupid']));
+	$usergroups_with_access = $this->get_usersgroups_with_access_to_group((int)$_GET['groupid']);
+	$group_name = stripslashes($vasthtml->get_groupname((int)$_GET['groupid']));
 	global $wpdb, $table_prefix;
 	$table = $table_prefix."forum_groups";
 
@@ -103,7 +103,7 @@ if(($_GET['do'] == "editgroup") && (!isset($_POST['edit_save_group']))){
 				<td><input type='submit' name='edit_save_group' value='".__("Save group", "vasthtml")."' /></td>
 			</tr>
 
-			<input type='hidden' name='edit_group_id' value='".$_GET['groupid']."' />";
+			<input type='hidden' name='edit_group_id' value='".(int)$_GET['groupid']."' />";
 	
 	echo "</table>";
 	
@@ -114,23 +114,23 @@ if(($_GET['do'] == "editgroup") && (!isset($_POST['edit_save_group']))){
 
 if(($_GET['do'] == "editforum") && (!isset($_POST['edit_save_forum']))){
 
-	echo "<h2>".__("Edit forum", "vasthtml")." \"".stripslashes($vasthtml->get_forumname($_GET['forumid']))."\"</h2>";
+	echo "<h2>".__("Edit forum", "vasthtml")." \"".stripslashes($vasthtml->get_forumname((int)$_GET['forumid']))."\"</h2>";
 	echo "<form id='edit_forum_form' name='edit_forum_form' action='' method='post'>";
 	
 	echo "<table class='form-table'>";
 	echo "<tr>
 			<th>".__("Name:", "vasthtml")."</th>
-			<td><input type='text' name='edit_forum_name' value='".stripslashes($vasthtml->get_forumname($_GET['forumid']))."' /></td>
+			<td><input type='text' name='edit_forum_name' value='".stripslashes($vasthtml->get_forumname((int)$_GET['forumid']))."' /></td>
 		</tr>
 		<tr>
 			<th>".__("Description:", "vasthtml")."</th>
-			<td><textarea name='edit_forum_description' ".ADMIN_ROW_COL.">".stripslashes($vasthtml->get_forum_description($_GET['forumid']))."</textarea></td>
+			<td><textarea name='edit_forum_description' ".ADMIN_ROW_COL.">".stripslashes($vasthtml->get_forum_description((int)$_GET['forumid']))."</textarea></td>
 		</tr>
 		<tr>
 			<th></th>
 			<td><input type='submit' name='edit_save_forum' value='".__("Save forum", "vasthtml")."' /></td>
 		</tr>
-		<input type='hidden' name='edit_forum_id' value='".$_GET['forumid']."' />";
+		<input type='hidden' name='edit_forum_id' value='".(int)$_GET['forumid']."' />";
 
 	echo "</table></form>";
 }

@@ -3,7 +3,7 @@ if(isset($_POST['edit_usergroup_submit'])){
 	global $wpdb, $table_prefix;
 	$edit_usergroup_name = $wpdb->escape($_POST['edit_usergroup_name']);
 	$edit_usergroup_description = $wpdb->escape($_POST['edit_usergroup_description']);
-	$edit_usergroup_id = $_POST['edit_usergroup_id'];
+	$edit_usergroup_id = $wpdb->escape($_POST['edit_usergroup_id']);
 	
 	if(!$edit_usergroup_name)
 		echo "<div id='message' class='updated fade'><p>".__("You must specify a name for the User Group", "vasthtml")."</p></div>";
