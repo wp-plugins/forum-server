@@ -37,7 +37,7 @@ else{
 				<td><input type='submit' name='edit_usergroup_submit' value='".__("Save User Group", "vasthtml")."'</td>
 			</tr>
 			
-			<input type='hidden' value='{$_GET['usergroup_id']}' name='edit_usergroup_id' />";
+			<input type='hidden' value='".(int)$_GET['usergroup_id']."' name='edit_usergroup_id' />";
 	echo "</table></form>";
 }
 ?>
