@@ -55,7 +55,7 @@ if(($_GET['do'] == "editgroup") && (!isset($_POST['edit_save_group']))){
 			</tr>
 			<tr>
 				<th>".__("Description", "vasthtml")."</th>
-				<td><textarea name='edit_group_description' ".ADMIN_ROW_COL.">".stripslashes($vasthtml->get_group_description($_GET['groupid']))."</textarea></td>
+				<td><textarea name='edit_group_description' ".ADMIN_ROW_COL.">".stripslashes($vasthtml->get_group_description((int)$_GET['groupid']))."</textarea></td>
 			</tr>
 			<tr>
 				<th>".__("User Groups:", "vasthtml")."</th>

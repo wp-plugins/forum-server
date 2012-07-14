@@ -1,6 +1,6 @@
 <?php 
 /*************** wpf-add-forum.php *********************/
-	echo "<h2>".__("Add forum to", "vasthtml")." \"".stripslashes($vasthtml->get_groupname($_GET['groupid']))."\"</h2>";
+	echo "<h2>".__("Add forum to", "vasthtml")." \"".stripslashes($vasthtml->get_groupname((int)$_GET['groupid']))."\"</h2>";
 
 	echo "<form name='add_forum_form' id='add_forum_form' method='post' action='".ADMIN_BASE_URL."structure'>";
 	echo "<table class='form-table'>
@@ -27,7 +27,7 @@
 				<th></th>
 				<td><input type='submit' value='".__("Save forum", "vasthtml")."' name='add_forum_submit' /></td>
 			</tr>
-			<input type='hidden' name='add_forum_group_id' value='{$_GET['groupid']}' />";
+			<input type='hidden' name='add_forum_group_id' value='".(int)$_GET['groupid']."' />";
 	
 	echo "</form></table>";
 /**********************************************************/

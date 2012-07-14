@@ -52,8 +52,8 @@ class vasthtmladmin extends vasthtmladmin_pro{
 				$groups = "";
 				$count = count($delete_usrgrp);
 				for($i = 0; $i < $count; $i++){
-					$wpdb->query("DELETE FROM ".$table_prefix."forum_usergroups WHERE id = {$delete_usrgrp[$i]}");
-					$wpdb->query("DELETE FROM ".$table_prefix."forum_usergroup2user WHERE `group` = {$delete_usrgrp[$i]}");
+					$wpdb->query("DELETE FROM ".$table_prefix."forum_usergroups WHERE id = ".(int)$delete_usrgrp[$i]);
+					$wpdb->query("DELETE FROM ".$table_prefix."forum_usergroup2user WHERE `group` = ".(int)$delete_usrgrp[$i]);
 
 				}
 				return true;
@@ -145,7 +145,7 @@ class vasthtmladmin extends vasthtmladmin_pro{
 			if($msg = $this->add_user_togroup())
 					echo "<div id='message' class='updated fade'><p>$msg</p></div>";
 			if(isset($_GET['do']) && $_GET['do'] == "removemember"){
-				$count = $wpdb->query("DELETE FROM ".$table_prefix."forum_usergroup2user WHERE user_id = {$_GET['memberid']} AND `group` = {$_GET['groupid']}");
+				$count = $wpdb->query("DELETE FROM ".$table_prefix."forum_usergroup2user WHERE user_id = {$_GET['memberid']} AND `group` = ".(int)$_GET['groupid']);
 				echo "<div id='message' class='updated fade'><p>" . __("Member successfully removed.", "vasthtml") . "</p></div>";
 			}
 			if(isset($_GET['do']) && $_GET['do'] == "edit_usergroup"){
@@ -862,16 +862,13 @@ function structure(){
 		function update_usergroups($new_groups, $group_id){
 			global $wpdb, $table_prefix;
 			$new_groups = maybe_serialize($new_groups);
-			$wpdb->query("UPDATE ".$table_prefix."forum_groups SET usergroups = '$new_groups' WHERE id = $group_id");
+			$wpdb->query("UPDATE ".$table_prefix."forum_groups SET usergroups = '$new_groups' WHERE id = ".(int)$group_id);
 		}
-
 		function get_usersgroups_with_access_to_group($groupid){
 			global $wpdb, $table_prefix;
-			$string = $wpdb->get_var("select usergroups from ".$table_prefix."forum_groups where id = $groupid");
+			$string = $wpdb->get_var("select usergroups from ".$table_prefix."forum_groups where id = ".(int)$groupid);
 			return  maybe_unserialize( $string );
-
 		}
-
 		function edit_moderator(){
 			if(isset($_POST['update_mod'])){
 
