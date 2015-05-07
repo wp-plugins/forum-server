@@ -4,7 +4,7 @@
 	Plugin Author: VastHTML
 	Author URI: http://forumpress.org/
     Plugin URI: http://forumpress.org/
-	Version: 1.7.5
+	Version: 1.8.2
 */
 
 include_once("wpf.class.php");
