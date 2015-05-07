@@ -651,7 +651,7 @@ class vasthtml extends vasthtml_pro{
 		$load =  __("Page loaded in:", "vasthtml")." ".round($end_time-$start_time, 3)." ".__("seconds.", "vasthtml")."";
 		if ($forum_instance === false) {
 			$this->o .= "<div id='wpf-info'><small>
-				".__("WP Forum Server by ", "vasthtml")."<a href='http://forumpress.org'>ForumPress</a> | <a href='http://www.lucidcrew.com' title='austin web design'>LucidCrew</a> <br />
+				".__("WP Forum Server by ", "vasthtml")."<a href='http://forumpress.org'>ForumPress</a> | <a href='http://www.lucidcrew.com'>Lucid Crew</a> <br />
 				".__("Version:", "vasthtml").$this->get_version().";
 				$load</small>
 			</div>";
@@ -2832,7 +2832,7 @@ function forum_get_group_from_post($thread_id){
 		foreach($users as $u){
 			$p = unserialize($u->meta_value);
 
-			if(is_array($p['notify_topics']) AND in_array($thread, $p['notify_topics']) ){
+			if(in_array($thread, $p['notify_topics']) ){
 
 				$user = get_userdata($u->user_id);
 
